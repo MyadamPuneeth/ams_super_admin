@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ams
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:-ams_local_admin}
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - ams_postgres:/var/lib/postgresql
+      - ./scripts/docker-init.sql:/docker-entrypoint-initdb.d/01-role.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ams"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:56379:6379"]
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: ["ams_redis:/data"]
+volumes:
+  ams_postgres:
+  ams_redis:

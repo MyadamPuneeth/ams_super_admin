@@ -1,0 +1,1 @@
+"""AMS FastAPI application."""
