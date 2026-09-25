@@ -3,7 +3,7 @@ import pg from 'pg';
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes, randomUUID, scryptSync } from 'node:crypto';
 
 const appRoot = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const migrationRoot = resolve(appRoot, 'runtime/api/prisma/migrations');
@@ -41,5 +41,28 @@ export async function seed(connectionString) {
   const client = new pg.Client({ connectionString }); await client.connect();
   try { await client.query('BEGIN'); if ((await client.query('SELECT 1 FROM "Academy" LIMIT 1')).rowCount) { await client.query('COMMIT'); return; } await client.query(readFileSync(seedFile, 'utf8')); await client.query('COMMIT'); }
   catch (error) { await client.query('ROLLBACK'); throw error; }
+  finally { await client.end(); }
+}
+
+export async function bootstrapPlatformOwner(connectionString) {
+  const username = process.env.PLATFORM_OWNER_USERNAME?.trim().toLowerCase();
+  const password = process.env.PLATFORM_OWNER_PASSWORD;
+  const name = process.env.PLATFORM_OWNER_NAME?.trim();
+  if (!username || !password || !name) throw new Error('Set PLATFORM_OWNER_USERNAME, PLATFORM_OWNER_PASSWORD, and PLATFORM_OWNER_NAME.');
+  if (!/^[a-z0-9._-]{3,50}$/.test(username)) throw new Error('PLATFORM_OWNER_USERNAME must be 3-50 letters, numbers, dots, underscores, or hyphens.');
+  if (password.length < 12 || password.length > 128) throw new Error('PLATFORM_OWNER_PASSWORD must be 12-128 characters.');
+  if (name.length > 100) throw new Error('PLATFORM_OWNER_NAME must be 100 characters or fewer.');
+  const salt = randomBytes(16); const digest = scryptSync(password, salt, 32, { N: 16384, r: 8, p: 1 });
+  const passwordHash = `scrypt$16384$8$1$${salt.toString('base64')}$${digest.toString('base64')}`;
+  const client = new pg.Client({ connectionString }); await client.connect();
+  try {
+    await client.query('BEGIN');
+    let owner = await client.query('SELECT "userId" FROM "PlatformOwner" WHERE username=$1', [username]);
+    if (!owner.rowCount) owner = await client.query('SELECT "userId" FROM "PlatformOwner" WHERE username IS NULL ORDER BY "userId" LIMIT 1 FOR UPDATE');
+    const userId = owner.rows[0]?.userId || randomUUID();
+    if (!owner.rowCount) await client.query('INSERT INTO "PlatformOwner" ("userId") VALUES ($1)', [userId]);
+    await client.query('UPDATE "PlatformOwner" SET username=$1, "passwordHash"=$2, name=$3, active=true, "failedLoginCount"=0, "lockedUntil"=NULL WHERE "userId"=$4', [username, passwordHash, name, userId]);
+    await client.query('COMMIT');
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
   finally { await client.end(); }
 }

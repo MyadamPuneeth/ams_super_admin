@@ -5,6 +5,54 @@
     "version": "0.2.0"
   },
   "paths": {
+    "/api/platform/auth/sign-in": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Platform Sign In",
+        "operationId": "platform_sign_in_api_platform_auth_sign_in_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformSignInInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platform/auth/sign-out": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Platform Sign Out",
+        "operationId": "platform_sign_out_api_platform_auth_sign_out_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
     "/api/auth/config": {
       "get": {
         "tags": [
@@ -63,6 +111,88 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/auth/password/sign-in": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Password Sign In",
+        "operationId": "password_sign_in_api_auth_password_sign_in_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSignInInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/password/change-required": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Password Change",
+        "operationId": "password_change_api_auth_password_change_required_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/password/sign-out": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Password Sign Out",
+        "operationId": "password_sign_out_api_auth_password_sign_out_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           }
         }
       }
@@ -193,6 +323,153 @@
         }
       }
     },
+    "/api/platform/credential-handoffs": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Credential Handoffs",
+        "operationId": "credential_handoffs_api_platform_credential_handoffs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HandoffDto"
+                  },
+                  "type": "array",
+                  "title": "Response Credential Handoffs Api Platform Credential Handoffs Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platform/credential-handoffs/{handoff_id}/reveal": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Reveal Credentials",
+        "operationId": "reveal_credentials_api_platform_credential_handoffs__handoff_id__reveal_post",
+        "parameters": [
+          {
+            "name": "handoff_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Handoff Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffSecretDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platform/credential-handoffs/{handoff_id}/copied": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Copied Credentials",
+        "operationId": "copied_credentials_api_platform_credential_handoffs__handoff_id__copied_post",
+        "parameters": [
+          {
+            "name": "handoff_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Handoff Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platform/credential-handoffs/{handoff_id}/retry-email": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Retry Credentials Email",
+        "operationId": "retry_credentials_email_api_platform_credential_handoffs__handoff_id__retry_email_post",
+        "parameters": [
+          {
+            "name": "handoff_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Handoff Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/platform/academies/{academy_id}": {
       "patch": {
         "tags": [
@@ -218,6 +495,59 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ActiveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcademyDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/platform/academies/{academy_id}/subscription": {
+      "patch": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Set Subscription",
+        "operationId": "set_subscription_api_platform_academies__academy_id__subscription_patch",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionInput"
               }
             }
           }
@@ -387,6 +717,113 @@
         }
       }
     },
+    "/api/academies/{academy_id}/branches/{branch_id}": {
+      "put": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Update Branch",
+        "operationId": "update_branch_api_academies__academy_id__branches__branch_id__put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BranchInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BranchDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Delete Branch",
+        "operationId": "delete_branch_api_academies__academy_id__branches__branch_id__delete",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/academies/{academy_id}/branches/{branch_id}/tables": {
       "post": {
         "tags": [
@@ -436,6 +873,133 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/branches/{branch_id}/tables/{table_id}": {
+      "put": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Update Table",
+        "operationId": "update_table_api_academies__academy_id__branches__branch_id__tables__table_id__put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "table_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Table Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Delete Table",
+        "operationId": "delete_table_api_academies__academy_id__branches__branch_id__tables__table_id__delete",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "table_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Table Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -849,6 +1413,1303 @@
         }
       }
     },
+    "/api/academies/{academy_id}/athletes/{athlete_id}": {
+      "patch": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Update Athlete",
+        "operationId": "update_athlete_api_academies__academy_id__athletes__athlete_id__patch",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "athlete_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Athlete Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AthleteUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AthleteDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/coaches": {
+      "get": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Coaches",
+        "operationId": "coaches_api_academies__academy_id__coaches_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoachDto"
+                  },
+                  "title": "Response Coaches Api Academies  Academy Id  Coaches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Create Coach",
+        "operationId": "create_coach_api_academies__academy_id__coaches_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/coaches/{coach_id}": {
+      "put": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Update Coach",
+        "operationId": "update_coach_api_academies__academy_id__coaches__coach_id__put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "coach_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Coach Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/batches": {
+      "get": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Batches",
+        "operationId": "batches_api_academies__academy_id__batches_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BatchDto"
+                  },
+                  "title": "Response Batches Api Academies  Academy Id  Batches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Create Batch",
+        "operationId": "create_batch_api_academies__academy_id__batches_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/batches/{batch_id}": {
+      "put": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Update Batch",
+        "operationId": "update_batch_api_academies__academy_id__batches__batch_id__put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Delete Batch",
+        "operationId": "delete_batch_api_academies__academy_id__batches__batch_id__delete",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/daily-attendance": {
+      "get": {
+        "tags": [
+          "attendance"
+        ],
+        "summary": "Daily Attendance",
+        "operationId": "daily_attendance_api_academies__academy_id__daily_attendance_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "localDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Localdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DailyAttendanceDto"
+                  },
+                  "title": "Response Daily Attendance Api Academies  Academy Id  Daily Attendance Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "attendance"
+        ],
+        "summary": "Save Daily Attendance",
+        "operationId": "save_daily_attendance_api_academies__academy_id__daily_attendance_put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyAttendanceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/invoices": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Invoices",
+        "operationId": "invoices_api_academies__academy_id__invoices_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceDto"
+                  },
+                  "title": "Response Invoices Api Academies  Academy Id  Invoices Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/invoices/generate": {
+      "post": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Generate Invoices",
+        "operationId": "generate_invoices_api_academies__academy_id__invoices_generate_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceGenerateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceDto"
+                  },
+                  "title": "Response Generate Invoices Api Academies  Academy Id  Invoices Generate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/invoices/{invoice_id}": {
+      "patch": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Update Invoice",
+        "operationId": "update_invoice_api_academies__academy_id__invoices__invoice_id__patch",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/payments": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Payments",
+        "operationId": "payments_api_academies__academy_id__payments_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentDto"
+                  },
+                  "title": "Response Payments Api Academies  Academy Id  Payments Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Create Payment",
+        "operationId": "create_payment_api_academies__academy_id__payments_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/payments/{payment_id}": {
+      "put": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Update Payment",
+        "operationId": "update_payment_api_academies__academy_id__payments__payment_id__put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "payment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Payment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Delete Payment",
+        "operationId": "delete_payment_api_academies__academy_id__payments__payment_id__delete",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "payment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Payment Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/refunds": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Refunds",
+        "operationId": "refunds_api_academies__academy_id__refunds_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RefundDto"
+                  },
+                  "title": "Response Refunds Api Academies  Academy Id  Refunds Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/payments/{payment_id}/refunds": {
+      "post": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Create Refund",
+        "operationId": "create_refund_api_academies__academy_id__payments__payment_id__refunds_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "payment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Payment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/expenses": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Expenses",
+        "operationId": "expenses_api_academies__academy_id__expenses_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExpenseDto"
+                  },
+                  "title": "Response Expenses Api Academies  Academy Id  Expenses Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Create Expense",
+        "operationId": "create_expense_api_academies__academy_id__expenses_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpenseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/expenses/{expense_id}": {
+      "put": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Update Expense",
+        "operationId": "update_expense_api_academies__academy_id__expenses__expense_id__put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "expense_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Expense Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpenseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Delete Expense",
+        "operationId": "delete_expense_api_academies__academy_id__expenses__expense_id__delete",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "expense_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Expense Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/finance-summary": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Finance Summary",
+        "operationId": "finance_summary_api_academies__academy_id__finance_summary_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinanceSummaryDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/academies/{academy_id}/guardian-links": {
       "post": {
         "tags": [
@@ -1240,24 +3101,17 @@
     "schemas": {
       "AcademyCreatedDto": {
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "invitationUrl": {
-            "type": "string",
-            "title": "Invitationurl"
-          },
           "academy": {
             "$ref": "#/components/schemas/AcademyDto"
+          },
+          "handoff": {
+            "$ref": "#/components/schemas/HandoffDto"
           }
         },
         "type": "object",
         "required": [
-          "id",
-          "invitationUrl",
-          "academy"
+          "academy",
+          "handoff"
         ],
         "title": "AcademyCreatedDto"
       },
@@ -1288,6 +3142,29 @@
             "type": "string",
             "format": "date-time",
             "title": "Createdat"
+          },
+          "subscriptionPlan": {
+            "$ref": "#/components/schemas/SubscriptionPlan"
+          },
+          "subscriptionStatus": {
+            "$ref": "#/components/schemas/SubscriptionStatus"
+          },
+          "subscriptionStartsOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Subscriptionstartson"
+          },
+          "subscriptionEndsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscriptionendson"
           }
         },
         "type": "object",
@@ -1297,7 +3174,11 @@
           "slug",
           "active",
           "timezone",
-          "createdAt"
+          "createdAt",
+          "subscriptionPlan",
+          "subscriptionStatus",
+          "subscriptionStartsOn",
+          "subscriptionEndsOn"
         ],
         "title": "AcademyDto"
       },
@@ -1321,6 +3202,50 @@
             "maxLength": 254,
             "minLength": 3,
             "title": "Adminemail"
+          },
+          "adminName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Adminname"
+          },
+          "adminUsername": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "title": "Adminusername"
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Temporarypassword"
+          },
+          "subscriptionPlan": {
+            "$ref": "#/components/schemas/SubscriptionPlan",
+            "default": "STARTER"
+          },
+          "subscriptionStatus": {
+            "$ref": "#/components/schemas/SubscriptionStatus",
+            "default": "TRIAL"
+          },
+          "subscriptionStartsOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Subscriptionstartson"
+          },
+          "subscriptionEndsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscriptionendson"
           }
         },
         "additionalProperties": false,
@@ -1328,7 +3253,10 @@
         "required": [
           "name",
           "slug",
-          "adminEmail"
+          "adminEmail",
+          "adminName",
+          "adminUsername",
+          "temporaryPassword"
         ],
         "title": "AcademyInput"
       },
@@ -1398,6 +3326,23 @@
             ],
             "title": "Membershipid"
           },
+          "homeBranchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homebranchid"
+          },
+          "monthlyFee": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Monthlyfee"
+          },
           "active": {
             "type": "boolean",
             "title": "Active"
@@ -1408,6 +3353,8 @@
           "id",
           "name",
           "membershipId",
+          "homeBranchId",
+          "monthlyFee",
           "active"
         ],
         "title": "AthleteDto"
@@ -1431,6 +3378,32 @@
               }
             ],
             "title": "Membershipid"
+          },
+          "homeBranchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homebranchid"
+          },
+          "monthlyFee": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Monthlyfee",
+            "default": "0"
           }
         },
         "additionalProperties": false,
@@ -1439,6 +3412,41 @@
           "name"
         ],
         "title": "AthleteInput"
+      },
+      "AthleteUpdateInput": {
+        "properties": {
+          "homeBranchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homebranchid"
+          },
+          "monthlyFee": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Monthlyfee"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "monthlyFee"
+        ],
+        "title": "AthleteUpdateInput"
       },
       "AttendanceDto": {
         "properties": {
@@ -1498,7 +3506,8 @@
           "localDate": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "date"
               },
               {
                 "type": "null"
@@ -1607,6 +3616,233 @@
         ],
         "title": "AuthConfigDto"
       },
+      "BatchDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "academyId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Academyid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branchid"
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tableid"
+          },
+          "recurrence": {
+            "type": "string",
+            "title": "Recurrence"
+          },
+          "oneOffDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oneoffdate"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Weekdays"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Startson"
+          },
+          "endsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endson"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
+            "title": "Starttime"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
+            "title": "Endtime"
+          },
+          "coachIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Coachids"
+          },
+          "athleteIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Athleteids"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "academyId",
+          "name",
+          "branchId",
+          "tableId",
+          "recurrence",
+          "oneOffDate",
+          "weekdays",
+          "startsOn",
+          "endsOn",
+          "startTime",
+          "endTime",
+          "coachIds",
+          "athleteIds",
+          "active"
+        ],
+        "title": "BatchDto"
+      },
+      "BatchInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branchid"
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tableid"
+          },
+          "recurrence": {
+            "type": "string",
+            "pattern": "^(ONCE|WEEKLY)$",
+            "title": "Recurrence"
+          },
+          "oneOffDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oneoffdate"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Weekdays",
+            "default": []
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Startson"
+          },
+          "endsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endson"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
+            "title": "Starttime"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
+            "title": "Endtime"
+          },
+          "coachIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Coachids",
+            "default": []
+          },
+          "athleteIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Athleteids",
+            "default": []
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "branchId",
+          "tableId",
+          "recurrence",
+          "startsOn",
+          "startTime",
+          "endTime"
+        ],
+        "title": "BatchInput"
+      },
       "BranchDto": {
         "properties": {
           "id": {
@@ -1674,6 +3910,241 @@
         ],
         "title": "BranchInput"
       },
+      "BranchRevenueDto": {
+        "properties": {
+          "branchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branchid"
+          },
+          "branchName": {
+            "type": "string",
+            "title": "Branchname"
+          },
+          "revenue": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Revenue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "branchId",
+          "branchName",
+          "revenue"
+        ],
+        "title": "BranchRevenueDto"
+      },
+      "CoachDto": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 5,
+            "title": "Phone"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "phone",
+          "id",
+          "createdAt"
+        ],
+        "title": "CoachDto"
+      },
+      "CoachInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 5,
+            "title": "Phone"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "phone"
+        ],
+        "title": "CoachInput"
+      },
+      "DailyAttendanceDto": {
+        "properties": {
+          "personType": {
+            "type": "string",
+            "title": "Persontype"
+          },
+          "personId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Personid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "personType",
+          "personId",
+          "name",
+          "status"
+        ],
+        "title": "DailyAttendanceDto"
+      },
+      "DailyAttendanceEntry": {
+        "properties": {
+          "personType": {
+            "type": "string",
+            "pattern": "^(ATHLETE|COACH)$",
+            "title": "Persontype"
+          },
+          "personId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Personid"
+          },
+          "status": {
+            "type": "string",
+            "pattern": "^(PRESENT|ABSENT|EXCUSED)$",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "personType",
+          "personId",
+          "status"
+        ],
+        "title": "DailyAttendanceEntry"
+      },
+      "DailyAttendanceInput": {
+        "properties": {
+          "localDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Localdate"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/DailyAttendanceEntry"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Entries"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "localDate",
+          "entries"
+        ],
+        "title": "DailyAttendanceInput"
+      },
       "DashboardDto": {
         "properties": {
           "branches": {
@@ -1705,6 +4176,11 @@
               }
             ],
             "title": "Invitations"
+          },
+          "currentMonthRevenue": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Currentmonthrevenue"
           }
         },
         "type": "object",
@@ -1712,7 +4188,8 @@
           "branches",
           "tables",
           "members",
-          "invitations"
+          "invitations",
+          "currentMonthRevenue"
         ],
         "title": "DashboardDto"
       },
@@ -1760,6 +4237,208 @@
         ],
         "title": "DemoProfileDto"
       },
+      "ExpenseDto": {
+        "properties": {
+          "branchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branchid"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "incurredOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Incurredon"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Category"
+          },
+          "vendor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "amount",
+          "incurredOn",
+          "category",
+          "id",
+          "createdAt"
+        ],
+        "title": "ExpenseDto"
+      },
+      "ExpenseInput": {
+        "properties": {
+          "branchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branchid"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          },
+          "incurredOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Incurredon"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Category"
+          },
+          "vendor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "amount",
+          "incurredOn",
+          "category"
+        ],
+        "title": "ExpenseInput"
+      },
+      "FinanceSummaryDto": {
+        "properties": {
+          "collections": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Collections"
+          },
+          "refunds": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Refunds"
+          },
+          "expenses": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Expenses"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Outstanding"
+          },
+          "net": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net"
+          },
+          "monthlyTrend": {
+            "items": {
+              "$ref": "#/components/schemas/TrendDto"
+            },
+            "type": "array",
+            "title": "Monthlytrend"
+          },
+          "branchDistribution": {
+            "items": {
+              "$ref": "#/components/schemas/BranchRevenueDto"
+            },
+            "type": "array",
+            "title": "Branchdistribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collections",
+          "refunds",
+          "expenses",
+          "outstanding",
+          "net",
+          "monthlyTrend",
+          "branchDistribution"
+        ],
+        "title": "FinanceSummaryDto"
+      },
       "GuardianLinkInput": {
         "properties": {
           "guardianMembershipId": {
@@ -1793,6 +4472,82 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HandoffDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "academyId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Academyid"
+          },
+          "academyName": {
+            "type": "string",
+            "title": "Academyname"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "copied": {
+            "type": "boolean",
+            "title": "Copied"
+          },
+          "emailSent": {
+            "type": "boolean",
+            "title": "Emailsent"
+          },
+          "emailError": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emailerror"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "academyId",
+          "academyName",
+          "username",
+          "email",
+          "copied",
+          "emailSent",
+          "emailError",
+          "createdAt"
+        ],
+        "title": "HandoffDto"
+      },
+      "HandoffSecretDto": {
+        "properties": {
+          "temporaryPassword": {
+            "type": "string",
+            "title": "Temporarypassword"
+          }
+        },
+        "type": "object",
+        "required": [
+          "temporaryPassword"
+        ],
+        "title": "HandoffSecretDto"
       },
       "InvitationCreatedDto": {
         "properties": {
@@ -1920,6 +4675,171 @@
         ],
         "title": "InvitationInput"
       },
+      "InvoiceDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "athleteId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Athleteid"
+          },
+          "athleteName": {
+            "type": "string",
+            "title": "Athletename"
+          },
+          "branchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branchid"
+          },
+          "billingMonth": {
+            "type": "string",
+            "format": "date",
+            "title": "Billingmonth"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "discount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Discount"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Duedate"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "paid": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Paid"
+          },
+          "balance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Balance"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "athleteId",
+          "athleteName",
+          "branchId",
+          "billingMonth",
+          "amount",
+          "discount",
+          "dueDate",
+          "status",
+          "paid",
+          "balance",
+          "note"
+        ],
+        "title": "InvoiceDto"
+      },
+      "InvoiceGenerateInput": {
+        "properties": {
+          "billingMonth": {
+            "type": "string",
+            "format": "date",
+            "title": "Billingmonth"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Duedate"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "billingMonth",
+          "dueDate"
+        ],
+        "title": "InvoiceGenerateInput"
+      },
+      "InvoiceUpdateInput": {
+        "properties": {
+          "discount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Discount"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Duedate"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(DUE|VOID)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "discount",
+          "dueDate"
+        ],
+        "title": "InvoiceUpdateInput"
+      },
       "MeDto": {
         "properties": {
           "id": {
@@ -1938,6 +4858,11 @@
           "platformOwner": {
             "type": "boolean",
             "title": "Platformowner"
+          },
+          "passwordChangeRequired": {
+            "type": "boolean",
+            "title": "Passwordchangerequired",
+            "default": false
           },
           "workspaces": {
             "items": {
@@ -2053,6 +4978,294 @@
         ],
         "title": "MemberInput"
       },
+      "PasswordChangeInput": {
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Newpassword"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "newPassword"
+        ],
+        "title": "PasswordChangeInput"
+      },
+      "PasswordSignInInput": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "PasswordSignInInput"
+      },
+      "PaymentDto": {
+        "properties": {
+          "invoiceId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoiceid"
+          },
+          "athleteId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Athleteid"
+          },
+          "branchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branchid"
+          },
+          "kind": {
+            "type": "string",
+            "pattern": "^(FEE|AD_HOC)$",
+            "title": "Kind"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "paidOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Paidon"
+          },
+          "method": {
+            "type": "string",
+            "pattern": "^(CASH|UPI|CARD|BANK_TRANSFER|OTHER)$",
+            "title": "Method"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "athleteName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Athletename"
+          },
+          "refunded": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Refunded"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "amount",
+          "paidOn",
+          "method",
+          "id",
+          "athleteName",
+          "refunded",
+          "createdAt"
+        ],
+        "title": "PaymentDto"
+      },
+      "PaymentInput": {
+        "properties": {
+          "invoiceId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoiceid"
+          },
+          "athleteId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Athleteid"
+          },
+          "branchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branchid"
+          },
+          "kind": {
+            "type": "string",
+            "pattern": "^(FEE|AD_HOC)$",
+            "title": "Kind"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          },
+          "paidOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Paidon"
+          },
+          "method": {
+            "type": "string",
+            "pattern": "^(CASH|UPI|CARD|BANK_TRANSFER|OTHER)$",
+            "title": "Method"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "amount",
+          "paidOn",
+          "method"
+        ],
+        "title": "PaymentInput"
+      },
+      "PlatformSignInInput": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "PlatformSignInInput"
+      },
       "QrDto": {
         "properties": {
           "token": {
@@ -2136,6 +5349,88 @@
           "token"
         ],
         "title": "RedeemQrInput"
+      },
+      "RefundDto": {
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "refundedOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Refundedon"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Reason"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "paymentId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Paymentid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "amount",
+          "refundedOn",
+          "reason",
+          "id",
+          "paymentId",
+          "createdAt"
+        ],
+        "title": "RefundDto"
+      },
+      "RefundInput": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          },
+          "refundedOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Refundedon"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "amount",
+          "refundedOn",
+          "reason"
+        ],
+        "title": "RefundInput"
       },
       "Role": {
         "type": "string",
@@ -2265,6 +5560,61 @@
         ],
         "title": "SessionInput"
       },
+      "SubscriptionInput": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/SubscriptionPlan"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubscriptionStatus"
+          },
+          "startsOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Startson"
+          },
+          "endsOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endson"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "plan",
+          "status",
+          "startsOn"
+        ],
+        "title": "SubscriptionInput"
+      },
+      "SubscriptionPlan": {
+        "type": "string",
+        "enum": [
+          "STARTER",
+          "PRO",
+          "ENTERPRISE"
+        ],
+        "title": "SubscriptionPlan"
+      },
+      "SubscriptionStatus": {
+        "type": "string",
+        "enum": [
+          "TRIAL",
+          "ACTIVE",
+          "PAST_DUE",
+          "CANCELLED",
+          "EXPIRED"
+        ],
+        "title": "SubscriptionStatus"
+      },
       "TableDto": {
         "properties": {
           "id": {
@@ -2312,6 +5662,32 @@
           "accessToken"
         ],
         "title": "TokenDto"
+      },
+      "TrendDto": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month"
+          },
+          "revenue": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Revenue"
+          },
+          "expenses": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Expenses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "revenue",
+          "expenses"
+        ],
+        "title": "TrendDto"
       },
       "ValidationError": {
         "properties": {

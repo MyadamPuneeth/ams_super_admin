@@ -1,4 +1,38 @@
 export interface paths {
+    "/api/platform/auth/sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Platform Sign In */
+        post: operations["platform_sign_in_api_platform_auth_sign_in_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/auth/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Platform Sign Out */
+        post: operations["platform_sign_out_api_platform_auth_sign_out_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/config": {
         parameters: {
             query?: never;
@@ -27,6 +61,57 @@ export interface paths {
         put?: never;
         /** Demo */
         post: operations["demo_api_auth_demo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/password/sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Password Sign In */
+        post: operations["password_sign_in_api_auth_password_sign_in_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/password/change-required": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Password Change */
+        post: operations["password_change_api_auth_password_change_required_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/password/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Password Sign Out */
+        post: operations["password_sign_out_api_auth_password_sign_out_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -85,6 +170,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/credential-handoffs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Credential Handoffs */
+        get: operations["credential_handoffs_api_platform_credential_handoffs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/credential-handoffs/{handoff_id}/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reveal Credentials */
+        post: operations["reveal_credentials_api_platform_credential_handoffs__handoff_id__reveal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/credential-handoffs/{handoff_id}/copied": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copied Credentials */
+        post: operations["copied_credentials_api_platform_credential_handoffs__handoff_id__copied_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/credential-handoffs/{handoff_id}/retry-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry Credentials Email */
+        post: operations["retry_credentials_email_api_platform_credential_handoffs__handoff_id__retry_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/platform/academies/{academy_id}": {
         parameters: {
             query?: never;
@@ -100,6 +253,23 @@ export interface paths {
         head?: never;
         /** Set Active */
         patch: operations["set_active_api_platform_academies__academy_id__patch"];
+        trace?: never;
+    };
+    "/api/platform/academies/{academy_id}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Subscription */
+        patch: operations["set_subscription_api_platform_academies__academy_id__subscription_patch"];
         trace?: never;
     };
     "/api/academies/{academy_id}/dashboard": {
@@ -137,6 +307,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/academies/{academy_id}/branches/{branch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Branch */
+        put: operations["update_branch_api_academies__academy_id__branches__branch_id__put"];
+        post?: never;
+        /** Delete Branch */
+        delete: operations["delete_branch_api_academies__academy_id__branches__branch_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/academies/{academy_id}/branches/{branch_id}/tables": {
         parameters: {
             query?: never;
@@ -149,6 +337,24 @@ export interface paths {
         /** Create Table */
         post: operations["create_table_api_academies__academy_id__branches__branch_id__tables_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/branches/{branch_id}/tables/{table_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Table */
+        put: operations["update_table_api_academies__academy_id__branches__branch_id__tables__table_id__put"];
+        post?: never;
+        /** Delete Table */
+        delete: operations["delete_table_api_academies__academy_id__branches__branch_id__tables__table_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -252,6 +458,286 @@ export interface paths {
         put?: never;
         /** Create Athlete */
         post: operations["create_athlete_api_academies__academy_id__athletes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/athletes/{athlete_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Athlete */
+        patch: operations["update_athlete_api_academies__academy_id__athletes__athlete_id__patch"];
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/coaches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Coaches */
+        get: operations["coaches_api_academies__academy_id__coaches_get"];
+        put?: never;
+        /** Create Coach */
+        post: operations["create_coach_api_academies__academy_id__coaches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/coaches/{coach_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Coach */
+        put: operations["update_coach_api_academies__academy_id__coaches__coach_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Batches */
+        get: operations["batches_api_academies__academy_id__batches_get"];
+        put?: never;
+        /** Create Batch */
+        post: operations["create_batch_api_academies__academy_id__batches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/batches/{batch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Batch */
+        put: operations["update_batch_api_academies__academy_id__batches__batch_id__put"];
+        post?: never;
+        /** Delete Batch */
+        delete: operations["delete_batch_api_academies__academy_id__batches__batch_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/daily-attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Daily Attendance */
+        get: operations["daily_attendance_api_academies__academy_id__daily_attendance_get"];
+        /** Save Daily Attendance */
+        put: operations["save_daily_attendance_api_academies__academy_id__daily_attendance_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invoices */
+        get: operations["invoices_api_academies__academy_id__invoices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/invoices/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Invoices */
+        post: operations["generate_invoices_api_academies__academy_id__invoices_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/invoices/{invoice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Invoice */
+        patch: operations["update_invoice_api_academies__academy_id__invoices__invoice_id__patch"];
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payments */
+        get: operations["payments_api_academies__academy_id__payments_get"];
+        put?: never;
+        /** Create Payment */
+        post: operations["create_payment_api_academies__academy_id__payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/payments/{payment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Payment */
+        put: operations["update_payment_api_academies__academy_id__payments__payment_id__put"];
+        post?: never;
+        /** Delete Payment */
+        delete: operations["delete_payment_api_academies__academy_id__payments__payment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Refunds */
+        get: operations["refunds_api_academies__academy_id__refunds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/payments/{payment_id}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Refund */
+        post: operations["create_refund_api_academies__academy_id__payments__payment_id__refunds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Expenses */
+        get: operations["expenses_api_academies__academy_id__expenses_get"];
+        put?: never;
+        /** Create Expense */
+        post: operations["create_expense_api_academies__academy_id__expenses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/expenses/{expense_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Expense */
+        put: operations["update_expense_api_academies__academy_id__expenses__expense_id__put"];
+        post?: never;
+        /** Delete Expense */
+        delete: operations["delete_expense_api_academies__academy_id__expenses__expense_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/finance-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Finance Summary */
+        get: operations["finance_summary_api_academies__academy_id__finance_summary_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -384,14 +870,8 @@ export interface components {
     schemas: {
         /** AcademyCreatedDto */
         AcademyCreatedDto: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Invitationurl */
-            invitationUrl: string;
             academy: components["schemas"]["AcademyDto"];
+            handoff: components["schemas"]["HandoffDto"];
         };
         /** AcademyDto */
         AcademyDto: {
@@ -413,6 +893,15 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+            subscriptionPlan: components["schemas"]["SubscriptionPlan"];
+            subscriptionStatus: components["schemas"]["SubscriptionStatus"];
+            /**
+             * Subscriptionstartson
+             * Format: date
+             */
+            subscriptionStartsOn: string;
+            /** Subscriptionendson */
+            subscriptionEndsOn: string | null;
         };
         /** AcademyInput */
         AcademyInput: {
@@ -422,6 +911,23 @@ export interface components {
             slug: string;
             /** Adminemail */
             adminEmail: string;
+            /** Adminname */
+            adminName: string;
+            /** Adminusername */
+            adminUsername: string;
+            /** Temporarypassword */
+            temporaryPassword: string;
+            /** @default STARTER */
+            subscriptionPlan: components["schemas"]["SubscriptionPlan"];
+            /** @default TRIAL */
+            subscriptionStatus: components["schemas"]["SubscriptionStatus"];
+            /**
+             * Subscriptionstartson
+             * Format: date
+             */
+            subscriptionStartsOn?: string;
+            /** Subscriptionendson */
+            subscriptionEndsOn?: string | null;
         };
         /** AcceptDto */
         AcceptDto: {
@@ -452,6 +958,10 @@ export interface components {
             name: string;
             /** Membershipid */
             membershipId: string | null;
+            /** Homebranchid */
+            homeBranchId: string | null;
+            /** Monthlyfee */
+            monthlyFee: string;
             /** Active */
             active: boolean;
         };
@@ -461,6 +971,20 @@ export interface components {
             name: string;
             /** Membershipid */
             membershipId?: string | null;
+            /** Homebranchid */
+            homeBranchId?: string | null;
+            /**
+             * Monthlyfee
+             * @default 0
+             */
+            monthlyFee: number | string;
+        };
+        /** AthleteUpdateInput */
+        AthleteUpdateInput: {
+            /** Homebranchid */
+            homeBranchId?: string | null;
+            /** Monthlyfee */
+            monthlyFee: number | string;
         };
         /** AttendanceDto */
         AttendanceDto: {
@@ -520,6 +1044,116 @@ export interface components {
             /** Profiles */
             profiles: components["schemas"]["DemoProfileDto"][];
         };
+        /** BatchDto */
+        BatchDto: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Academyid
+             * Format: uuid
+             */
+            academyId: string;
+            /** Name */
+            name: string;
+            /**
+             * Branchid
+             * Format: uuid
+             */
+            branchId: string;
+            /**
+             * Tableid
+             * Format: uuid
+             */
+            tableId: string;
+            /** Recurrence */
+            recurrence: string;
+            /** Oneoffdate */
+            oneOffDate: string | null;
+            /** Weekdays */
+            weekdays: number[];
+            /**
+             * Startson
+             * Format: date
+             */
+            startsOn: string;
+            /** Endson */
+            endsOn: string | null;
+            /**
+             * Starttime
+             * Format: time
+             */
+            startTime: string;
+            /**
+             * Endtime
+             * Format: time
+             */
+            endTime: string;
+            /** Coachids */
+            coachIds: string[];
+            /** Athleteids */
+            athleteIds: string[];
+            /** Active */
+            active: boolean;
+        };
+        /** BatchInput */
+        BatchInput: {
+            /** Name */
+            name: string;
+            /**
+             * Branchid
+             * Format: uuid
+             */
+            branchId: string;
+            /**
+             * Tableid
+             * Format: uuid
+             */
+            tableId: string;
+            /** Recurrence */
+            recurrence: string;
+            /** Oneoffdate */
+            oneOffDate?: string | null;
+            /**
+             * Weekdays
+             * @default []
+             */
+            weekdays: number[];
+            /**
+             * Startson
+             * Format: date
+             */
+            startsOn: string;
+            /** Endson */
+            endsOn?: string | null;
+            /**
+             * Starttime
+             * Format: time
+             */
+            startTime: string;
+            /**
+             * Endtime
+             * Format: time
+             */
+            endTime: string;
+            /**
+             * Coachids
+             * @default []
+             */
+            coachIds: string[];
+            /**
+             * Athleteids
+             * @default []
+             */
+            athleteIds: string[];
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+        };
         /** BranchDto */
         BranchDto: {
             /**
@@ -545,6 +1179,93 @@ export interface components {
             /** Address */
             address: string;
         };
+        /** BranchRevenueDto */
+        BranchRevenueDto: {
+            /** Branchid */
+            branchId: string | null;
+            /** Branchname */
+            branchName: string;
+            /** Revenue */
+            revenue: string;
+        };
+        /** CoachDto */
+        CoachDto: {
+            /** Name */
+            name: string;
+            /** Phone */
+            phone: string;
+            /** Email */
+            email?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** CoachInput */
+        CoachInput: {
+            /** Name */
+            name: string;
+            /** Phone */
+            phone: string;
+            /** Email */
+            email?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+        };
+        /** DailyAttendanceDto */
+        DailyAttendanceDto: {
+            /** Persontype */
+            personType: string;
+            /**
+             * Personid
+             * Format: uuid
+             */
+            personId: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string | null;
+        };
+        /** DailyAttendanceEntry */
+        DailyAttendanceEntry: {
+            /** Persontype */
+            personType: string;
+            /**
+             * Personid
+             * Format: uuid
+             */
+            personId: string;
+            /** Status */
+            status: string;
+        };
+        /** DailyAttendanceInput */
+        DailyAttendanceInput: {
+            /**
+             * Localdate
+             * Format: date
+             */
+            localDate: string;
+            /** Entries */
+            entries: components["schemas"]["DailyAttendanceEntry"][];
+        };
         /** DashboardDto */
         DashboardDto: {
             /** Branches */
@@ -555,6 +1276,8 @@ export interface components {
             members: number | null;
             /** Invitations */
             invitations: number | null;
+            /** Currentmonthrevenue */
+            currentMonthRevenue: string;
         };
         /** DemoInput */
         DemoInput: {
@@ -578,6 +1301,69 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** ExpenseDto */
+        ExpenseDto: {
+            /** Branchid */
+            branchId?: string | null;
+            /** Amount */
+            amount: string;
+            /**
+             * Incurredon
+             * Format: date
+             */
+            incurredOn: string;
+            /** Category */
+            category: string;
+            /** Vendor */
+            vendor?: string | null;
+            /** Note */
+            note?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** ExpenseInput */
+        ExpenseInput: {
+            /** Branchid */
+            branchId?: string | null;
+            /** Amount */
+            amount: number | string;
+            /**
+             * Incurredon
+             * Format: date
+             */
+            incurredOn: string;
+            /** Category */
+            category: string;
+            /** Vendor */
+            vendor?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** FinanceSummaryDto */
+        FinanceSummaryDto: {
+            /** Collections */
+            collections: string;
+            /** Refunds */
+            refunds: string;
+            /** Expenses */
+            expenses: string;
+            /** Outstanding */
+            outstanding: string;
+            /** Net */
+            net: string;
+            /** Monthlytrend */
+            monthlyTrend: components["schemas"]["TrendDto"][];
+            /** Branchdistribution */
+            branchDistribution: components["schemas"]["BranchRevenueDto"][];
+        };
         /** GuardianLinkInput */
         GuardianLinkInput: {
             /**
@@ -595,6 +1381,41 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HandoffDto */
+        HandoffDto: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Academyid
+             * Format: uuid
+             */
+            academyId: string;
+            /** Academyname */
+            academyName: string;
+            /** Username */
+            username: string;
+            /** Email */
+            email: string;
+            /** Copied */
+            copied: boolean;
+            /** Emailsent */
+            emailSent: boolean;
+            /** Emailerror */
+            emailError: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** HandoffSecretDto */
+        HandoffSecretDto: {
+            /** Temporarypassword */
+            temporaryPassword: string;
         };
         /** InvitationCreatedDto */
         InvitationCreatedDto: {
@@ -645,6 +1466,72 @@ export interface components {
             /** Email */
             email: string;
         };
+        /** InvoiceDto */
+        InvoiceDto: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Athleteid
+             * Format: uuid
+             */
+            athleteId: string;
+            /** Athletename */
+            athleteName: string;
+            /** Branchid */
+            branchId: string | null;
+            /**
+             * Billingmonth
+             * Format: date
+             */
+            billingMonth: string;
+            /** Amount */
+            amount: string;
+            /** Discount */
+            discount: string;
+            /**
+             * Duedate
+             * Format: date
+             */
+            dueDate: string;
+            /** Status */
+            status: string;
+            /** Paid */
+            paid: string;
+            /** Balance */
+            balance: string;
+            /** Note */
+            note: string | null;
+        };
+        /** InvoiceGenerateInput */
+        InvoiceGenerateInput: {
+            /**
+             * Billingmonth
+             * Format: date
+             */
+            billingMonth: string;
+            /**
+             * Duedate
+             * Format: date
+             */
+            dueDate: string;
+        };
+        /** InvoiceUpdateInput */
+        InvoiceUpdateInput: {
+            /** Discount */
+            discount: number | string;
+            /**
+             * Duedate
+             * Format: date
+             */
+            dueDate: string;
+            /** Note */
+            note?: string | null;
+            /** Status */
+            status?: string | null;
+        };
         /** MeDto */
         MeDto: {
             /**
@@ -658,6 +1545,11 @@ export interface components {
             name: string;
             /** Platformowner */
             platformOwner: boolean;
+            /**
+             * Passwordchangerequired
+             * @default false
+             */
+            passwordChangeRequired: boolean;
             /** Workspaces */
             workspaces: components["schemas"]["WorkspaceDto"][];
         };
@@ -697,6 +1589,87 @@ export interface components {
             /** Active */
             active: boolean;
         };
+        /** PasswordChangeInput */
+        PasswordChangeInput: {
+            /** Newpassword */
+            newPassword: string;
+        };
+        /** PasswordSignInInput */
+        PasswordSignInInput: {
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
+        };
+        /** PaymentDto */
+        PaymentDto: {
+            /** Invoiceid */
+            invoiceId?: string | null;
+            /** Athleteid */
+            athleteId?: string | null;
+            /** Branchid */
+            branchId?: string | null;
+            /** Kind */
+            kind: string;
+            /** Amount */
+            amount: string;
+            /**
+             * Paidon
+             * Format: date
+             */
+            paidOn: string;
+            /** Method */
+            method: string;
+            /** Reference */
+            reference?: string | null;
+            /** Note */
+            note?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Athletename */
+            athleteName: string | null;
+            /** Refunded */
+            refunded: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** PaymentInput */
+        PaymentInput: {
+            /** Invoiceid */
+            invoiceId?: string | null;
+            /** Athleteid */
+            athleteId?: string | null;
+            /** Branchid */
+            branchId?: string | null;
+            /** Kind */
+            kind: string;
+            /** Amount */
+            amount: number | string;
+            /**
+             * Paidon
+             * Format: date
+             */
+            paidOn: string;
+            /** Method */
+            method: string;
+            /** Reference */
+            reference?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** PlatformSignInInput */
+        PlatformSignInInput: {
+            /** Username */
+            username: string;
+            /** Password */
+            password: string;
+        };
         /** QrDto */
         QrDto: {
             /** Token */
@@ -727,6 +1700,45 @@ export interface components {
             token: string;
             /** Athleteid */
             athleteId?: string | null;
+        };
+        /** RefundDto */
+        RefundDto: {
+            /** Amount */
+            amount: string;
+            /**
+             * Refundedon
+             * Format: date
+             */
+            refundedOn: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Paymentid
+             * Format: uuid
+             */
+            paymentId: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+        };
+        /** RefundInput */
+        RefundInput: {
+            /** Amount */
+            amount: number | string;
+            /**
+             * Refundedon
+             * Format: date
+             */
+            refundedOn: string;
+            /** Reason */
+            reason: string;
         };
         /**
          * Role
@@ -792,6 +1804,28 @@ export interface components {
              */
             endsAt: string;
         };
+        /** SubscriptionInput */
+        SubscriptionInput: {
+            plan: components["schemas"]["SubscriptionPlan"];
+            status: components["schemas"]["SubscriptionStatus"];
+            /**
+             * Startson
+             * Format: date
+             */
+            startsOn: string;
+            /** Endson */
+            endsOn?: string | null;
+        };
+        /**
+         * SubscriptionPlan
+         * @enum {string}
+         */
+        SubscriptionPlan: "STARTER" | "PRO" | "ENTERPRISE";
+        /**
+         * SubscriptionStatus
+         * @enum {string}
+         */
+        SubscriptionStatus: "TRIAL" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
         /** TableDto */
         TableDto: {
             /**
@@ -811,6 +1845,18 @@ export interface components {
         TokenDto: {
             /** Accesstoken */
             accessToken: string;
+        };
+        /** TrendDto */
+        TrendDto: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Revenue */
+            revenue: string;
+            /** Expenses */
+            expenses: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -835,6 +1881,55 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    platform_sign_in_api_platform_auth_sign_in_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformSignInInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    platform_sign_out_api_platform_auth_sign_out_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     auth_config_api_auth_config_get: {
         parameters: {
             query?: never;
@@ -885,6 +1980,86 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    password_sign_in_api_auth_password_sign_in_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordSignInInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    password_change_api_auth_password_change_required_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    password_sign_out_api_auth_password_sign_out_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -994,6 +2169,117 @@ export interface operations {
             };
         };
     };
+    credential_handoffs_api_platform_credential_handoffs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffDto"][];
+                };
+            };
+        };
+    };
+    reveal_credentials_api_platform_credential_handoffs__handoff_id__reveal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffSecretDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copied_credentials_api_platform_credential_handoffs__handoff_id__copied_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_credentials_email_api_platform_credential_handoffs__handoff_id__retry_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_active_api_platform_academies__academy_id__patch: {
         parameters: {
             query?: never;
@@ -1006,6 +2292,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ActiveInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademyDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_subscription_api_platform_academies__academy_id__subscription_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionInput"];
             };
         };
         responses: {
@@ -1126,6 +2447,72 @@ export interface operations {
             };
         };
     };
+    update_branch_api_academies__academy_id__branches__branch_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_branch_api_academies__academy_id__branches__branch_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_table_api_academies__academy_id__branches__branch_id__tables_post: {
         parameters: {
             query?: never;
@@ -1150,6 +2537,74 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TableDto"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_table_api_academies__academy_id__branches__branch_id__tables__table_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                branch_id: string;
+                table_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_table_api_academies__academy_id__branches__branch_id__tables__table_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                branch_id: string;
+                table_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -1409,6 +2864,811 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AthleteDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_athlete_api_academies__academy_id__athletes__athlete_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                athlete_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AthleteUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AthleteDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    coaches_api_academies__academy_id__coaches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoachDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_coach_api_academies__academy_id__coaches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoachInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoachDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_coach_api_academies__academy_id__coaches__coach_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                coach_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoachInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoachDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    batches_api_academies__academy_id__batches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_batch_api_academies__academy_id__batches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_batch_api_academies__academy_id__batches__batch_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_batch_api_academies__academy_id__batches__batch_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    daily_attendance_api_academies__academy_id__daily_attendance_get: {
+        parameters: {
+            query: {
+                localDate: string;
+            };
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyAttendanceDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_daily_attendance_api_academies__academy_id__daily_attendance_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyAttendanceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invoices_api_academies__academy_id__invoices_get: {
+        parameters: {
+            query?: {
+                month?: string | null;
+            };
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_invoices_api_academies__academy_id__invoices_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceGenerateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_invoice_api_academies__academy_id__invoices__invoice_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                invoice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    payments_api_academies__academy_id__payments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_payment_api_academies__academy_id__payments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_payment_api_academies__academy_id__payments__payment_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_payment_api_academies__academy_id__payments__payment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refunds_api_academies__academy_id__refunds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_refund_api_academies__academy_id__payments__payment_id__refunds_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    expenses_api_academies__academy_id__expenses_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_expense_api_academies__academy_id__expenses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpenseInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_expense_api_academies__academy_id__expenses__expense_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                expense_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpenseInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_expense_api_academies__academy_id__expenses__expense_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+                expense_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finance_summary_api_academies__academy_id__finance_summary_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+            };
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceSummaryDto"];
                 };
             };
             /** @description Validation Error */

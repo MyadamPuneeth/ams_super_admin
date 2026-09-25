@@ -15,23 +15,26 @@ Requirements: Node.js 22.12 or later, Python 3.12 or later, and the configured l
 ```powershell
 npm install
 python -m pip install uv
-npm run dev
+npm start
 ```
 
-The command applies only pending migrations to the configured native database, starts all three applications, and preserves data after AMS stops. Use `npm run dev:preview-db` only when you need the isolated bundled preview database.
+Run this command from the application you want to launch. It applies pending migrations to the configured PostgreSQL database, then starts that app's Vite frontend and Python FastAPI backend. The apps share the same commands but use separate ports: user (5173/3001), super-admin (5174/3102), and mobile (5175/3003).
 
-To run one application with its own FastAPI process, use one of these commands:
+For the super-admin app, set `PLATFORM_OWNER_USERNAME`, `PLATFORM_OWNER_PASSWORD`, and `PLATFORM_OWNER_NAME` in `.env`. Startup securely hashes the password and creates or updates the PostgreSQL platform-owner account. Production also requires a random `PLATFORM_SESSION_SECRET` of at least 32 characters.
+
+Academy onboarding also requires a stable `CREDENTIAL_HANDOFF_KEY` of at least 32 characters. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`starttls`, `ssl`, or `none`), `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM` to email the first administrator's temporary credentials. If SMTP delivery fails, the academy is still created and the platform owner can retry from the dashboard.
+
+## Startup options
 
 ```powershell
-npm run dev:user
-npm run dev:super-admin
-npm run dev:mobile
-npm run dev:api
+npm start
+npm run start:api
+npm run start:preview
 ```
 
-Each application command validates PostgreSQL access, applies pending migrations, and starts the API on port 3001 plus the selected frontend. Run only one of these individual commands at a time because each owns port 3001; use `npm run dev` when you need all three frontends together.
+`npm start` launches the frontend plus its Python API against the configured local PostgreSQL service. `npm run start:api` launches only the Python API. `npm run start:preview` launches the frontend plus Python API with an isolated embedded PostgreSQL database. The existing `npm run dev`, `npm run dev:api`, and `npm run dev:preview-db` commands remain equivalent aliases.
 
-The API documentation is available at [http://127.0.0.1:3001/api/docs](http://127.0.0.1:3001/api/docs).
+The API documentation is available at `http://127.0.0.1:<api-port>/api/docs`.
 
 ## Use your persistent local PostgreSQL server
 
@@ -42,7 +45,7 @@ AMS can use the PostgreSQL service installed on your computer, which lets pgAdmi
 3. Start AMS with:
 
 ```powershell
-npm run dev
+npm start
 ```
 
 The command creates the `ams` database if needed, installs the restricted `ams_app` role, applies pending AMS migrations and seeds the database only if it is empty. In pgAdmin, connect to `127.0.0.1:5432`, database `ams`, as `postgres` to inspect all tables. The application connects as the restricted `ams_app` role, so its row-level security rules remain active.
@@ -50,9 +53,10 @@ The command creates the `ams` database if needed, installs the restricted `ams_a
 ## Verification
 
 ```powershell
+npm run build
 npm test
 npm run test:e2e
-npm run check
+npm run contracts
 ```
 
-`npm test` runs the FastAPI pytest suite against an isolated PostgreSQL database and verifies tenant policies, invitation races, revoked membership and suspension. `npm run test:e2e` verifies the real browser paths and responsive layouts.
+`npm run build` type-checks and builds the frontend. `npm test` runs the FastAPI pytest suite against an isolated PostgreSQL database. `npm run test:e2e` verifies platform-owner workflows in Chromium. `npm run contracts` regenerates and validates the FastAPI OpenAPI client contract.

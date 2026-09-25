@@ -111,10 +111,52 @@ class TestFoundation:
 
     def test_08_platform_onboarding(self, client, tokens):
         assert request(client, f"/api/academies/{ACADEMY}/branches", tokens["owner"])[0] == 403
-        _, created = request(client, "/api/platform/academies", tokens["owner"], "POST", {"name": "Champions Academy", "slug": "champions", "adminEmail": "priya@example.test"})
-        assert request(client, "/api/invitations/accept", tokens["recipient"], "POST", {"token": urlparse(created["invitationUrl"]).fragment})[0] == 200
-        workspace = next(item for item in request(client, "/api/me", tokens["recipient"])[1]["workspaces"] if item["academy"]["id"] == created["academy"]["id"])
+        body = {"name": "Champions Academy", "slug": "champions", "adminName": "Maya Singh", "adminEmail": "maya@example.test", "adminUsername": "maya.admin", "temporaryPassword": "temporary-pass-123"}
+        status, created = request(client, "/api/platform/academies", tokens["owner"], "POST", body)
+        assert status == 201 and "invitationUrl" not in created
+        assert created["handoff"]["emailSent"] is False
+
+        before = len(request(client, "/api/platform/academies", tokens["owner"])[1])
+        duplicate = {**body, "name": "Duplicate Academy", "slug": "duplicate-academy"}
+        assert request(client, "/api/platform/academies", tokens["owner"], "POST", duplicate)[0] == 409
+        assert len(request(client, "/api/platform/academies", tokens["owner"])[1]) == before
+
+        pending = request(client, "/api/platform/credential-handoffs", tokens["owner"])[1]
+        handoff = next(item for item in pending if item["id"] == created["handoff"]["id"])
+        assert body["temporaryPassword"] not in str(pending)
+        assert request(client, f"/api/platform/credential-handoffs/{handoff['id']}/reveal", tokens["owner"], "POST")[1]["temporaryPassword"] == body["temporaryPassword"]
+
+        origin = {"Origin": "http://localhost:5173"}
+        signed_in = client.post("/api/auth/password/sign-in", headers=origin, json={"username": "MAYA.ADMIN", "password": body["temporaryPassword"]})
+        assert signed_in.status_code == 204 and signed_in.cookies.get("ams_user_session")
+        me = client.get("/api/me").json()
+        assert me["passwordChangeRequired"] is True
+        workspace = next(item for item in me["workspaces"] if item["academy"]["id"] == created["academy"]["id"])
         assert workspace["membership"]["roles"] == ["ADMIN"]
+        assert client.get(f"/api/academies/{created['academy']['id']}/dashboard").status_code == 403
+        assert client.post("/api/auth/password/change-required", headers=origin, json={"newPassword": "replacement-pass-456"}).status_code == 204
+        assert client.get("/api/me").json()["passwordChangeRequired"] is False
+        assert client.get(f"/api/academies/{created['academy']['id']}/dashboard").status_code == 200
+        assert client.post("/api/auth/password/sign-out", headers=origin).status_code == 204
+
+        assert request(client, f"/api/platform/credential-handoffs/{handoff['id']}/copied", tokens["owner"], "POST")[0] == 204
+        assert any(item["id"] == handoff["id"] for item in request(client, "/api/platform/credential-handoffs", tokens["owner"])[1])
+        async def delivered(*_): pass
+        client.app.state.service.mailer.send_credentials = delivered
+        delivered_handoff = request(client, f"/api/platform/credential-handoffs/{handoff['id']}/retry-email", tokens["owner"], "POST")[1]
+        assert delivered_handoff["copied"] and delivered_handoff["emailSent"]
+        assert all(item["id"] != handoff["id"] for item in request(client, "/api/platform/credential-handoffs", tokens["owner"])[1])
+        assert request(client, f"/api/platform/credential-handoffs/{handoff['id']}/reveal", tokens["owner"], "POST")[0] == 404
+
+        lockout = {**body, "name": "Lockout Academy", "slug": "lockout-academy", "adminEmail": "locked@example.test", "adminUsername": "locked.admin"}
+        assert request(client, "/api/platform/academies", tokens["owner"], "POST", lockout)[0] == 201
+        for _ in range(5):
+            response = client.post("/api/auth/password/sign-in", headers=origin, json={"username": lockout["adminUsername"], "password": "incorrect-pass-123"})
+            assert response.status_code == 401 and response.json()["message"] == "Invalid username or password."
+        assert client.post("/api/auth/password/sign-in", headers=origin, json={"username": lockout["adminUsername"], "password": lockout["temporaryPassword"]}).status_code == 401
+        client.cookies.set("ams_user_session", "invalid")
+        assert client.get("/api/me").status_code == 401
+        client.cookies.delete("ams_user_session")
 
     def test_09_revocation_and_last_admin(self, client, tokens):
         members = request(client, f"/api/academies/{ACADEMY}/members", tokens["admin"])[1]
@@ -141,11 +183,11 @@ class TestFoundation:
         assert any(entry["action"] == "invitation.accepted" for entry in activity)
         assert "invitationUrl" not in str(activity)
 
-    def test_12_demo_auth_rejected_in_production(self):
+    def test_12_demo_auth_rejected_in_production(self, client):
         previous = os.environ["NODE_ENV"]
         os.environ["NODE_ENV"] = "production"
         try:
-            with pytest.raises(RuntimeError, match="DEV_AUTH requires"): AuthService()
+            with pytest.raises(RuntimeError, match="DEV_AUTH requires"): AuthService(client.app.state.db)
         finally: os.environ["NODE_ENV"] = previous
 
     def test_13_attendance_persists_and_staff_qr_is_idempotent(self, client, tokens):
@@ -159,3 +201,57 @@ class TestFoundation:
         staff = request(client, "/api/attendance-qr/redeem", tokens["admin"], "POST", {"token": qr["token"]})
         again = request(client, "/api/attendance-qr/redeem", tokens["admin"], "POST", {"token": qr["token"]})
         assert staff[0] == 200 and again[0] == 200 and staff[1]["id"] == again[1]["id"]
+
+    def test_14_platform_subscription(self, client, tokens):
+        academy = request(client, "/api/platform/academies", tokens["owner"])[1][0]
+        assert academy["subscriptionPlan"] == "STARTER" and academy["subscriptionStartsOn"]
+        invalid = {"plan": "PRO", "status": "ACTIVE", "startsOn": "2026-10-01", "endsOn": "2026-09-01"}
+        assert request(client, f"/api/platform/academies/{academy['id']}/subscription", tokens["owner"], "PATCH", invalid)[0] == 400
+        valid = {**invalid, "endsOn": "2027-10-01"}
+        status, updated = request(client, f"/api/platform/academies/{academy['id']}/subscription", tokens["owner"], "PATCH", valid)
+        assert status == 200 and updated["subscriptionPlan"] == "PRO" and updated["subscriptionStatus"] == "ACTIVE"
+
+    def test_15_platform_owner_password_and_lockout(self, client):
+        origin = {"Origin": "http://localhost:5174"}
+        signed_in = client.post("/api/platform/auth/sign-in", headers=origin, json={"username": "PLATFORM.OWNER", "password": "correct-horse-battery"})
+        assert signed_in.status_code == 204 and signed_in.cookies.get("ams_platform_session")
+        assert client.get("/api/me").json()["platformOwner"] is True
+        assert client.post("/api/platform/auth/sign-out", headers=origin).status_code == 204
+        assert client.get("/api/me").status_code == 401
+        for _ in range(5):
+            rejected = client.post("/api/platform/auth/sign-in", headers=origin, json={"username": "platform.owner", "password": "incorrect-password"})
+            assert rejected.status_code == 401 and rejected.json()["message"] == "Invalid username or password."
+        assert client.post("/api/platform/auth/sign-in", headers=origin, json={"username": "platform.owner", "password": "correct-horse-battery"}).status_code == 401
+
+    def test_16_operations_attendance_and_finance(self, client, tokens):
+        assert request(client, f"/api/academies/{OTHER}/coaches", tokens["admin"])[0] == 403
+        _, coach = request(client, f"/api/academies/{ACADEMY}/coaches", tokens["admin"], "POST", {"name": "Kiran Coach", "phone": "9876543210", "email": None, "notes": None, "active": True})
+        _, athlete = request(client, f"/api/academies/{ACADEMY}/athletes", tokens["admin"], "POST", {"name": "Finance Athlete", "homeBranchId": BRANCH, "monthlyFee": 1000})
+        table_id = request(client, f"/api/academies/{ACADEMY}/branches", tokens["admin"])[1][0]["tables"][0]["id"]
+        batch = {"name": "Evening Batch", "branchId": BRANCH, "tableId": table_id, "recurrence": "WEEKLY", "oneOffDate": None, "weekdays": [0, 2, 4], "startsOn": "2026-09-01", "endsOn": None, "startTime": "18:00:00", "endTime": "19:00:00", "coachIds": [coach["id"]], "athleteIds": [athlete["id"]], "active": True}
+        assert request(client, f"/api/academies/{ACADEMY}/batches", tokens["admin"], "POST", batch)[0] == 201
+        assert request(client, f"/api/academies/{ACADEMY}/batches", tokens["admin"], "POST", {**batch, "name": "Conflict"})[0] == 409
+
+        register = request(client, f"/api/academies/{ACADEMY}/daily-attendance?localDate=2026-09-24", tokens["admin"])[1]
+        assert any(item["personId"] == coach["id"] for item in register) and any(item["personId"] == athlete["id"] for item in register)
+        attendance = {"localDate": "2026-09-24", "entries": [{"personType": "COACH", "personId": coach["id"], "status": "PRESENT"}, {"personType": "ATHLETE", "personId": athlete["id"], "status": "EXCUSED"}]}
+        assert request(client, f"/api/academies/{ACADEMY}/daily-attendance", tokens["admin"], "PUT", attendance)[0] == 204
+        assert {item["status"] for item in request(client, f"/api/academies/{ACADEMY}/daily-attendance?localDate=2026-09-24", tokens["admin"])[1] if item["personId"] in {coach["id"], athlete["id"]}} == {"PRESENT", "EXCUSED"}
+
+        generate = {"billingMonth": "2026-09-01", "dueDate": "2026-09-10"}
+        invoices = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", generate)[1]
+        again = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", generate)[1]
+        invoice = next(item for item in invoices if item["athleteId"] == athlete["id"])
+        assert len([item for item in again if item["athleteId"] == athlete["id"]]) == 1
+        payment = {"invoiceId": invoice["id"], "athleteId": athlete["id"], "branchId": BRANCH, "kind": "FEE", "amount": 400, "paidOn": "2026-09-24", "method": "UPI", "reference": "UPI-1", "note": None}
+        assert request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", {**payment, "amount": 1001})[0] == 400
+        _, paid = request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", payment)
+        assert next(item for item in request(client, f"/api/academies/{ACADEMY}/invoices?month=2026-09-01", tokens["admin"])[1] if item["id"] == invoice["id"])["status"] == "PARTIAL"
+        assert request(client, f"/api/academies/{ACADEMY}/payments/{paid['id']}/refunds", tokens["admin"], "POST", {"amount": 50, "refundedOn": "2026-09-24", "reason": "Correction"})[0] == 201
+        assert request(client, f"/api/academies/{ACADEMY}/payments/{paid['id']}/refunds", tokens["admin"], "POST", {"amount": 351, "refundedOn": "2026-09-24", "reason": "Too much"})[0] == 400
+        _, expense = request(client, f"/api/academies/{ACADEMY}/expenses", tokens["admin"], "POST", {"branchId": BRANCH, "amount": 100, "incurredOn": "2026-09-24", "category": "Equipment", "vendor": "Local shop", "note": None})
+        summary = request(client, f"/api/academies/{ACADEMY}/finance-summary?start=2026-09-01&end=2026-09-30", tokens["admin"])[1]
+        assert float(summary["collections"]) >= 400 and float(summary["refunds"]) >= 50 and float(summary["expenses"]) >= 100
+        assert any(item["branchId"] == BRANCH for item in summary["branchDistribution"])
+        assert request(client, f"/api/academies/{ACADEMY}/expenses/{expense['id']}", tokens["admin"], "DELETE")[0] == 204
+        assert request(client, f"/api/academies/{ACADEMY}/payments/{paid['id']}", tokens["admin"], "DELETE")[0] == 204

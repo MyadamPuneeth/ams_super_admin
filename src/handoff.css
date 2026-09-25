@@ -1,0 +1,23 @@
+.handoff-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 22px 24px;
+  border: 1px solid #d9cffd;
+  border-radius: 18px;
+  background: #f4f0ff;
+}
+.handoff-panel h2 { margin: 0 0 5px; font: 700 18px 'Manrope', sans-serif; }
+.handoff-panel p { margin: 0; color: var(--muted); }
+.handoff-panel .eyebrow { margin-bottom: 7px; }
+.handoff-list { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.handoff-list button { display: grid; text-align: left; }
+.handoff-list small { color: var(--muted); font-size: 11px; }
+.success-note { margin: 0; color: #18734a; font-weight: 600; }
+@media (max-width: 700px) {
+  .handoff-panel { align-items: stretch; flex-direction: column; }
+  .handoff-list { justify-content: stretch; }
+  .handoff-list button { width: 100%; }
+}

@@ -1,4 +1,4 @@
-import { embedded, migrate, seed } from './database.mjs';
+import { bootstrapPlatformOwner, embedded, migrate, seed } from './database.mjs';
 import { setupLocalPostgres } from './local-postgres-setup.mjs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +19,7 @@ if (!Number.isInteger(apiPort) || !Number.isInteger(frontendPort)) throw new Err
 if (externalDatabase && (!process.env.DATABASE_URL || !process.env.MIGRATION_DATABASE_URL)) throw new Error('Set DATABASE_URL and MIGRATION_DATABASE_URL in .env.');
 const database = externalDatabase
   ? { appUrl: process.env.DATABASE_URL, adminUrl: process.env.MIGRATION_DATABASE_URL }
-  : await embedded({ port: testMode ? 57000 + Math.floor(Math.random() * 1000) : 55432, directory: resolve(appRoot, '.local/postgres') });
+  : await embedded({ port: testMode ? 57000 + Math.floor(Math.random() * 1000) : 55432, directory: resolve(appRoot, testMode ? `.local/e2e-${process.pid}` : '.local/postgres') });
 const children = [];
 let stopping = false;
 async function stop(code = 0) {
@@ -44,7 +44,7 @@ async function assertFree(port) {
 try {
   await Promise.all([startApi && assertFree(apiPort), startFrontend && assertFree(frontendPort)].filter(Boolean));
   if (externalDatabase) await setupLocalPostgres(database.adminUrl);
-  await migrate(database.adminUrl); await seed(database.adminUrl);
+  await migrate(database.adminUrl); await seed(database.adminUrl); await bootstrapPlatformOwner(database.adminUrl);
   const origins = process.env.WEB_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:5175';
   if (startApi) {
     const api = run('python', ['-m', 'uv', 'run', '--project', apiRoot, 'uvicorn', 'ams_api.main:app', '--host', '127.0.0.1', '--port', String(apiPort), ...(testMode ? [] : ['--reload'])], {
