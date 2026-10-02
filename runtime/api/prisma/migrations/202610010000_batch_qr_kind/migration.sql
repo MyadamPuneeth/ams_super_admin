@@ -1,0 +1,1 @@
+ALTER TYPE "QrKind" ADD VALUE 'BATCH';

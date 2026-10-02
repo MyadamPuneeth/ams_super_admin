@@ -1,6 +1,7 @@
 import asyncio
 import os
 import smtplib
+import ssl
 from email.message import EmailMessage
 
 class Mailer:
@@ -10,13 +11,14 @@ class Mailer:
         self.security = os.getenv("SMTP_SECURITY", "starttls").lower()
         self.username = os.getenv("SMTP_USERNAME", "")
         self.password = os.getenv("SMTP_PASSWORD", "")
-        self.sender = os.getenv("SMTP_FROM", "")
+        self.sender = os.getenv("SMTP_FROM", "") or self.username
         if self.security not in {"starttls", "ssl", "none"}: raise RuntimeError("SMTP_SECURITY must be starttls, ssl, or none.")
         if os.getenv("NODE_ENV") == "production" and not all((self.host, self.sender)):
-            raise RuntimeError("SMTP_HOST and SMTP_FROM are required in production.")
+            raise RuntimeError("SMTP_HOST and a sender (SMTP_FROM or SMTP_USERNAME) are required in production.")
 
     async def send_credentials(self, recipient: str, academy: str, username: str, password: str) -> None:
         if not self.host or not self.sender: raise RuntimeError("SMTP is not configured.")
+        if self.username and not self.password: raise RuntimeError("SMTP_PASSWORD is required when SMTP_USERNAME is set. For Gmail, use a Google app password.")
         message = EmailMessage()
         message["Subject"] = f"Your {academy} administrator account"
         message["From"] = self.sender
@@ -27,7 +29,8 @@ class Mailer:
 
     def _send(self, message: EmailMessage) -> None:
         client_type = smtplib.SMTP_SSL if self.security == "ssl" else smtplib.SMTP
-        with client_type(self.host, self.port, timeout=15) as client:
-            if self.security == "starttls": client.starttls()
+        options = {"context": ssl.create_default_context()} if self.security == "ssl" else {}
+        with client_type(self.host, self.port, timeout=15, **options) as client:
+            if self.security == "starttls": client.starttls(context=ssl.create_default_context())
             if self.username: client.login(self.username, self.password)
             client.send_message(message)

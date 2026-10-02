@@ -12,6 +12,9 @@ const testMode = process.argv.includes('--test');
 const externalDatabase = process.argv.includes('--external-db');
 const startFrontend = process.argv.includes('--frontend');
 const startApi = process.argv.includes('--api') || startFrontend;
+if (startApi && (process.env.CREDENTIAL_HANDOFF_KEY || '').length < 32) {
+  throw new Error('Set CREDENTIAL_HANDOFF_KEY to a stable random secret of at least 32 characters in .env, then stop and restart npm run dev. Python reload does not reload the parent environment.');
+}
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const apiPort = Number(option('api-port') || process.env.API_PORT || 3001);
 const frontendPort = Number(option('frontend-port') || process.env.FRONTEND_PORT || 5173);
@@ -47,7 +50,7 @@ try {
   await migrate(database.adminUrl); await seed(database.adminUrl); await bootstrapPlatformOwner(database.adminUrl);
   const origins = process.env.WEB_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:5175';
   if (startApi) {
-    const api = run('python', ['-m', 'uv', 'run', '--project', apiRoot, 'uvicorn', 'ams_api.main:app', '--host', '127.0.0.1', '--port', String(apiPort), ...(testMode ? [] : ['--reload'])], {
+    const api = run('python', ['-m', 'uv', 'run', '--project', apiRoot, 'uvicorn', 'ams_api.main:app', '--host', '127.0.0.1', '--port', String(apiPort), ...(testMode || process.argv.includes('--no-reload') ? [] : ['--reload'])], {
       DATABASE_URL: database.appUrl, NODE_ENV: testMode ? 'test' : 'development', DEV_AUTH: 'true', PORT: String(apiPort), WEB_ORIGINS: origins,
       USER_APP_ORIGIN: process.env.USER_APP_ORIGIN || 'http://localhost:5173', MOBILE_APP_ORIGIN: process.env.MOBILE_APP_ORIGIN || 'http://localhost:5175', UV_CACHE_DIR: resolve(appRoot, '.local/uv-cache'),
     });

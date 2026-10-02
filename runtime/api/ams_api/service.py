@@ -1,6 +1,9 @@
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+import base64
 import hashlib
+import hmac
+import json
 import os
 from secrets import token_hex
 from uuid import UUID
@@ -12,7 +15,7 @@ from .auth import AuthService, Identity
 from .database import Database
 from .errors import ApiError
 from .mail import Mailer
-from .schemas import AcademyInput, AthleteInput, AthleteUpdateInput, AttendanceInput, BatchInput, BranchInput, CoachInput, DailyAttendanceInput, ExpenseInput, GuardianLinkInput, InvitationInput, InvoiceGenerateInput, InvoiceUpdateInput, MemberInput, PaymentInput, QrInput, RefundInput, Role, SessionInput, SubscriptionInput
+from .schemas import AcademyInput, AthleteInput, AthleteUpdateInput, AttendanceInput, BatchInput, BranchInput, CoachInput, DailyAttendanceInput, ExpenseInput, GuardianLinkInput, InvitationInput, InvoiceGenerateInput, InvoiceUpdateInput, MemberInput, MobileAccountInput, MobilePasswordResetInput, PaymentInput, RefundInput, Role, SessionInput, StaffWorkdaysInput, SubscriptionInput
 
 ACADEMY_FIELDS = 'id, name, slug, active, timezone, "subscriptionPlan", "subscriptionStatus", "subscriptionStartsOn", "subscriptionEndsOn", "createdAt"'
 
@@ -270,8 +273,9 @@ class AcademyService:
 
     async def athletes(self, actor: Identity, academy_id: UUID):
         async with self.db.as_actor(actor, academy_id) as session:
-            await self.member(session, actor, academy_id)
-            return rows(await session.execute(text('SELECT id, name, "membershipId", "homeBranchId", "monthlyFee", active FROM "Athlete" WHERE "academyId"=:academy AND active ORDER BY name'), {"academy": academy_id}))
+            member = await self.member(session, actor, academy_id)
+            fee = '"monthlyFee"' if set(member["roles"]) & {"ADMIN", "FINANCE"} else '0::numeric AS "monthlyFee"'
+            return rows(await session.execute(text(f'SELECT id, name, "membershipId", "homeBranchId", {fee}, active FROM "Athlete" WHERE "academyId"=:academy AND active ORDER BY name'), {"academy": academy_id}))
 
     async def create_athlete(self, actor: Identity, academy_id: UUID, input: AthleteInput):
         async with self.db.as_actor(actor, academy_id) as session:
@@ -283,27 +287,33 @@ class AcademyService:
     async def update_athlete(self, actor: Identity, academy_id: UUID, athlete_id: UUID, input: AthleteUpdateInput):
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
-            value = row(await session.execute(text('UPDATE "Athlete" SET "homeBranchId"=:branch,"monthlyFee"=:fee WHERE id=:id AND "academyId"=:academy RETURNING id,name,"membershipId","homeBranchId","monthlyFee",active'), {"academy": academy_id, "id": athlete_id, "branch": input.homeBranchId, "fee": input.monthlyFee}))
+            value = row(await session.execute(text('UPDATE "Athlete" SET name=COALESCE(:name,name),"homeBranchId"=:branch,"monthlyFee"=:fee WHERE id=:id AND "academyId"=:academy RETURNING id,name,"membershipId","homeBranchId","monthlyFee",active'), {"academy": academy_id, "id": athlete_id, "name": input.name, "branch": input.homeBranchId, "fee": input.monthlyFee}))
             if not value: raise ApiError(404, "Athlete not found.")
-            await self.audit(session, actor, academy_id, "athlete.fees.updated", f"Updated fees for {value['name']}")
+            await self.audit(session, actor, academy_id, "athlete.updated", f"Updated athlete {value['name']}")
             return value
 
     async def coaches(self, actor: Identity, academy_id: UUID):
         async with self.db.as_actor(actor, academy_id) as session:
-            await self.member(session, actor, academy_id)
-            return rows(await session.execute(text('SELECT id,name,phone,email,notes,active,"createdAt" FROM "Coach" WHERE "academyId"=:academy ORDER BY name'), {"academy": academy_id}))
+            member = await self.member(session, actor, academy_id)
+            values = rows(await session.execute(text('SELECT id,name,phone,email,notes,active,"membershipId","createdAt" FROM "Coach" WHERE "academyId"=:academy ORDER BY name'), {"academy": academy_id}))
+            if "COACH" in member["roles"] and "ADMIN" not in member["roles"]:
+                own = {item["id"] for item in values if item["membershipId"] == member["id"]}
+                batches = await self.batch_values(session, academy_id)
+                visible = {coach_id for batch in batches if own.intersection(batch["coachIds"]) for coach_id in batch["coachIds"]}
+                return [{**item, "phone": "", "email": None, "notes": None} for item in values if item["id"] in visible]
+            return values
 
     async def create_coach(self, actor: Identity, academy_id: UUID, input: CoachInput):
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
-            value = row(await session.execute(text('INSERT INTO "Coach"("academyId",name,phone,email,notes,active) VALUES(:academy,:name,:phone,:email,:notes,:active) RETURNING id,name,phone,email,notes,active,"createdAt"'), {"academy": academy_id, **input.model_dump()}))
+            value = row(await session.execute(text('INSERT INTO "Coach"("academyId",name,phone,email,notes,active) VALUES(:academy,:name,:phone,:email,:notes,:active) RETURNING id,name,phone,email,notes,active,"membershipId","createdAt"'), {"academy": academy_id, **input.model_dump()}))
             await self.audit(session, actor, academy_id, "coach.created", f"Added coach {input.name}")
             return value
 
     async def update_coach(self, actor: Identity, academy_id: UUID, coach_id: UUID, input: CoachInput):
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
-            value = row(await session.execute(text('UPDATE "Coach" SET name=:name,phone=:phone,email=:email,notes=:notes,active=:active WHERE id=:id AND "academyId"=:academy RETURNING id,name,phone,email,notes,active,"createdAt"'), {"academy": academy_id, "id": coach_id, **input.model_dump()}))
+            value = row(await session.execute(text('UPDATE "Coach" SET name=:name,phone=:phone,email=:email,notes=:notes,active=:active WHERE id=:id AND "academyId"=:academy RETURNING id,name,phone,email,notes,active,"membershipId","createdAt"'), {"academy": academy_id, "id": coach_id, **input.model_dump()}))
             if not value: raise ApiError(404, "Coach not found.")
             await self.audit(session, actor, academy_id, "coach.updated", f"Updated coach {input.name}")
             return value
@@ -325,15 +335,36 @@ class AcademyService:
             value["athleteIds"] = list(await session.scalars(text('SELECT "athleteId" FROM "BatchAthlete" WHERE "batchId"=:id'), {"id": value["id"]}))
         return values
 
+    async def snapshot_batch_opportunities(self, session: AsyncSession, academy_id: UUID, athlete_id: UUID | None = None):
+        # Freeze elapsed rostered occurrences before schedules or rosters can change.
+        await session.execute(text('''INSERT INTO "AthleteBatchOpportunity"("academyId","batchId","athleteId","localDate","startTime","batchName","branchId")
+          SELECT b."academyId",b.id,ba."athleteId",d.day::date,b."startTime",b.name,b."branchId"
+          FROM "Batch" b JOIN "BatchAthlete" ba ON ba."batchId"=b.id
+          JOIN "Academy" a ON a.id=b."academyId"
+          CROSS JOIN LATERAL generate_series(b."startsOn"::timestamp,
+            LEAST(COALESCE(b."endsOn",(now() AT TIME ZONE a.timezone)::date),(now() AT TIME ZONE a.timezone)::date)::timestamp,
+            interval '1 day') AS d(day)
+          WHERE b."academyId"=:academy AND b.active AND d.day::date>=b."historyFrom" AND d.day::date>=ba."assignedOn"
+            AND (CAST(:athlete AS uuid) IS NULL OR ba."athleteId"=:athlete)
+            AND (b.recurrence='WEEKLY' AND (EXTRACT(ISODOW FROM d.day)::int-1)=ANY(b.weekdays)
+              OR b.recurrence='ONCE' AND d.day::date=b."oneOffDate")
+            AND (d.day::date<(now() AT TIME ZONE a.timezone)::date OR b."endTime"<=(now() AT TIME ZONE a.timezone)::time)
+          ON CONFLICT ("batchId","athleteId","localDate") DO NOTHING'''), {"academy": academy_id, "athlete": athlete_id})
+
     async def batches(self, actor: Identity, academy_id: UUID):
         async with self.db.as_actor(actor, academy_id) as session:
-            await self.member(session, actor, academy_id)
-            return await self.batch_values(session, academy_id)
+            member = await self.member(session, actor, academy_id)
+            values = await self.batch_values(session, academy_id)
+            if "COACH" in member["roles"] and "ADMIN" not in member["roles"]:
+                coach_ids = set(await session.scalars(text('SELECT id FROM "Coach" WHERE "academyId"=:academy AND "membershipId"=:member AND active'), {"academy": academy_id, "member": member["id"]}))
+                return [value for value in values if coach_ids.intersection(value["coachIds"])]
+            return values
 
     async def save_batch(self, actor: Identity, academy_id: UUID, input: BatchInput, batch_id: UUID | None = None):
         if input.recurrence == "ONCE" and not input.oneOffDate or input.recurrence == "WEEKLY" and (input.oneOffDate or not input.weekdays): raise ApiError(400, "Choose a valid batch recurrence.")
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
+            await self.snapshot_batch_opportunities(session, academy_id)
             if not await session.scalar(text('SELECT 1 FROM "TableResource" WHERE id=:table AND "branchId"=:branch AND "academyId"=:academy'), {"table": input.tableId, "branch": input.branchId, "academy": academy_id}): raise ApiError(400, "Choose a table from the selected branch.")
             if len(set(input.coachIds)) != len(input.coachIds) or len(set(input.athleteIds)) != len(input.athleteIds): raise ApiError(400, "Assignments must be unique.")
             if await session.scalar(text('SELECT count(*) FROM "Coach" WHERE "academyId"=:academy AND active AND id=ANY(CAST(:ids AS uuid[]))'), {"academy": academy_id, "ids": [str(x) for x in input.coachIds]}) != len(input.coachIds): raise ApiError(400, "One or more coaches are unavailable.")
@@ -343,39 +374,134 @@ class AcademyService:
                 if existing["id"] == batch_id or not existing["active"] or not input.active: continue
                 resources = existing["tableId"] == input.tableId or set(existing["coachIds"]) & set(input.coachIds) or set(existing["athleteIds"]) & set(input.athleteIds)
                 if resources and self.schedules_overlap(proposed, existing): raise ApiError(409, f"{existing['name']} already uses the selected table, coach, or athlete at that time.")
-            params = {"academy": academy_id, "id": batch_id, **proposed}
+            local_date = await session.scalar(text('SELECT (now() AT TIME ZONE timezone)::date FROM "Academy" WHERE id=:academy'), {"academy": academy_id})
+            creating = batch_id is None
+            params = {"academy": academy_id, "id": batch_id, "historyFrom": input.startsOn if creating else local_date, **proposed}
             if batch_id:
-                value = row(await session.execute(text('UPDATE "Batch" SET name=:name,"branchId"=:branchId,"tableId"=:tableId,recurrence=CAST(:recurrence AS "BatchRecurrence"),"oneOffDate"=:oneOffDate,weekdays=:weekdays,"startsOn"=:startsOn,"endsOn"=:endsOn,"startTime"=:startTime,"endTime"=:endTime,active=:active WHERE id=:id AND "academyId"=:academy RETURNING id'), params))
+                value = row(await session.execute(text('UPDATE "Batch" SET name=:name,"branchId"=:branchId,"tableId"=:tableId,recurrence=CAST(:recurrence AS "BatchRecurrence"),"oneOffDate"=:oneOffDate,weekdays=:weekdays,"startsOn"=:startsOn,"endsOn"=:endsOn,"startTime"=:startTime,"endTime"=:endTime,"historyFrom"=:historyFrom,active=:active WHERE id=:id AND "academyId"=:academy RETURNING id'), params))
                 if not value: raise ApiError(404, "Batch not found.")
                 await session.execute(text('DELETE FROM "BatchCoach" WHERE "batchId"=:id'), {"id": batch_id})
-                await session.execute(text('DELETE FROM "BatchAthlete" WHERE "batchId"=:id'), {"id": batch_id})
-            else: batch_id = await session.scalar(text('INSERT INTO "Batch"("academyId",name,"branchId","tableId",recurrence,"oneOffDate",weekdays,"startsOn","endsOn","startTime","endTime",active) VALUES(:academy,:name,:branchId,:tableId,CAST(:recurrence AS "BatchRecurrence"),:oneOffDate,:weekdays,:startsOn,:endsOn,:startTime,:endTime,:active) RETURNING id'), params)
+                await session.execute(text('DELETE FROM "BatchAthlete" WHERE "batchId"=:id AND NOT ("athleteId"=ANY(CAST(:athletes AS uuid[])))'), {"id": batch_id, "athletes": [str(value) for value in input.athleteIds]})
+            else: batch_id = await session.scalar(text('INSERT INTO "Batch"("academyId",name,"branchId","tableId",recurrence,"oneOffDate",weekdays,"startsOn","endsOn","startTime","endTime","historyFrom",active) VALUES(:academy,:name,:branchId,:tableId,CAST(:recurrence AS "BatchRecurrence"),:oneOffDate,:weekdays,:startsOn,:endsOn,:startTime,:endTime,:historyFrom,:active) RETURNING id'), params)
             for coach_id in input.coachIds: await session.execute(text('INSERT INTO "BatchCoach"("academyId","batchId","coachId") VALUES(:academy,:batch,:person)'), {"academy": academy_id, "batch": batch_id, "person": coach_id})
-            for athlete_id in input.athleteIds: await session.execute(text('INSERT INTO "BatchAthlete"("academyId","batchId","athleteId") VALUES(:academy,:batch,:person)'), {"academy": academy_id, "batch": batch_id, "person": athlete_id})
+            for athlete_id in input.athleteIds: await session.execute(text('INSERT INTO "BatchAthlete"("academyId","batchId","athleteId","assignedOn") VALUES(:academy,:batch,:person,:assigned) ON CONFLICT ("batchId","athleteId") DO NOTHING'), {"academy": academy_id, "batch": batch_id, "person": athlete_id, "assigned": input.startsOn if creating else local_date})
             await self.audit(session, actor, academy_id, "batch.saved", f"Saved batch {input.name}")
             return next(item for item in await self.batch_values(session, academy_id) if item["id"] == batch_id)
 
     async def delete_batch(self, actor: Identity, academy_id: UUID, batch_id: UUID):
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
+            await self.snapshot_batch_opportunities(session, academy_id)
             name = await session.scalar(text('DELETE FROM "Batch" WHERE id=:id AND "academyId"=:academy RETURNING name'), {"id": batch_id, "academy": academy_id})
             if not name: raise ApiError(404, "Batch not found.")
             await self.audit(session, actor, academy_id, "batch.deleted", f"Deleted batch {name}")
 
     async def daily_attendance(self, actor: Identity, academy_id: UUID, local_date: date):
         async with self.db.as_actor(actor, academy_id) as session:
-            await self.member(session, actor, academy_id, True)
+            member = await self.member(session, actor, academy_id)
+            if not set(member["roles"]) & {"ADMIN", "COACH"}: raise ApiError(403, "Coach access is required.")
             athletes = rows(await session.execute(text('SELECT \'ATHLETE\' AS "personType",a.id AS "personId",a.name,d.status FROM "Athlete" a LEFT JOIN "AthleteDailyAttendance" d ON d."athleteId"=a.id AND d."localDate"=:date WHERE a."academyId"=:academy AND a.active'), {"academy": academy_id, "date": local_date}))
-            coaches = rows(await session.execute(text('SELECT \'COACH\' AS "personType",c.id AS "personId",c.name,d.status FROM "Coach" c LEFT JOIN "CoachAttendance" d ON d."coachId"=c.id AND d."localDate"=:date WHERE c."academyId"=:academy AND c.active'), {"academy": academy_id, "date": local_date}))
+            coaches = rows(await session.execute(text('SELECT \'COACH\' AS "personType",c.id AS "personId",c.name,d.status FROM "Coach" c LEFT JOIN "CoachAttendance" d ON d."coachId"=c.id AND d."localDate"=:date WHERE c."academyId"=:academy AND c.active'), {"academy": academy_id, "date": local_date})) if "ADMIN" in member["roles"] else []
             return sorted(athletes + coaches, key=lambda item: (item["personType"], item["name"]))
 
     async def save_daily_attendance(self, actor: Identity, academy_id: UUID, input: DailyAttendanceInput):
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
+            await self.snapshot_batch_opportunities(session, academy_id)
             for entry in input.entries:
                 table, column = ("AthleteDailyAttendance", "athleteId") if entry.personType == "ATHLETE" else ("CoachAttendance", "coachId")
                 await session.execute(text(f'INSERT INTO "{table}"("academyId","{column}","localDate",status,"actorId") VALUES(:academy,:person,:date,CAST(:status AS "AttendanceStatus"),:actor) ON CONFLICT ("academyId","{column}","localDate") DO UPDATE SET status=EXCLUDED.status,"actorId"=EXCLUDED."actorId","updatedAt"=now()'), {"academy": academy_id, "person": entry.personId, "date": input.localDate, "status": entry.status, "actor": actor.id})
+                if entry.personType == "ATHLETE":
+                    await session.execute(text('UPDATE "AthleteBatchOpportunity" SET status=CAST(:status AS "AttendanceStatus"),source=\'MANUAL\',"updatedAt"=now() WHERE "academyId"=:academy AND "athleteId"=:person AND "localDate"=:date AND (status IS NULL OR source=\'MANUAL\')'), {"academy": academy_id, "person": entry.personId, "date": input.localDate, "status": entry.status})
             await self.audit(session, actor, academy_id, "attendance.daily.saved", f"Saved {len(input.entries)} attendance records for {input.localDate}")
+
+    async def provision_mobile_account(self, actor: Identity, academy_id: UUID, input: MobileAccountInput):
+        from uuid import uuid4
+        async with self.db.as_actor(actor, academy_id) as session:
+            await self.member(session, actor, academy_id, True)
+            member_id = await session.scalar(text('SELECT app_private.provision_mobile_account(:academy,:type,:person,:user,:username,:password,:name,:email)'), {
+                "academy": academy_id, "type": input.personType, "person": input.personId, "user": uuid4(),
+                "username": input.username, "password": AuthService.hash_password(input.temporaryPassword), "name": input.name, "email": input.email})
+            await self.audit(session, actor, academy_id, "mobile.account.created", f"Provisioned {input.personType.lower()} account {input.username}")
+            return {"membershipId": member_id, "username": input.username, "name": input.name}
+
+    async def staff_workdays(self, actor: Identity, academy_id: UUID):
+        async with self.db.as_actor(actor, academy_id) as session:
+            await self.member(session, actor, academy_id, True)
+            return rows(await session.execute(text('SELECT DISTINCT ON ("membershipId") "membershipId","effectiveOn",weekdays FROM "StaffWorkdayRule" WHERE "academyId"=:academy ORDER BY "membershipId","effectiveOn" DESC'), {"academy": academy_id}))
+
+    async def reset_mobile_password(self, actor: Identity, academy_id: UUID, input: MobilePasswordResetInput):
+        async with self.db.as_actor(actor, academy_id) as session:
+            await self.member(session, actor, academy_id, True)
+            await session.execute(text('SELECT app_private.reset_mobile_password(:academy,:member,:password)'), {"academy": academy_id, "member": input.membershipId, "password": AuthService.hash_password(input.temporaryPassword)})
+            await self.audit(session, actor, academy_id, "mobile.password.reset", f"Reset password for membership {input.membershipId}")
+
+    async def save_staff_workdays(self, actor: Identity, academy_id: UUID, input: StaffWorkdaysInput):
+        if len(set(input.weekdays)) != len(input.weekdays) or any(day not in range(7) for day in input.weekdays): raise ApiError(400, "Choose unique weekdays.")
+        async with self.db.as_actor(actor, academy_id) as session:
+            await self.member(session, actor, academy_id, True)
+            member = await session.scalar(text('SELECT 1 FROM "Membership" WHERE id=:member AND "academyId"=:academy AND active AND NOT (\'ATHLETE\'=ANY(roles))'), {"academy": academy_id, "member": input.membershipId})
+            if not member: raise ApiError(404, "Staff member not found.")
+            local_date = await session.scalar(text('SELECT (now() AT TIME ZONE timezone)::date FROM "Academy" WHERE id=:academy'), {"academy": academy_id})
+            await session.execute(text('INSERT INTO "StaffWorkdayRule"("academyId","membershipId","effectiveOn",weekdays) VALUES(:academy,:member,:date,:days) ON CONFLICT ("academyId","membershipId","effectiveOn") DO UPDATE SET weekdays=EXCLUDED.weekdays'), {"academy": academy_id, "member": input.membershipId, "date": local_date, "days": input.weekdays})
+            await self.audit(session, actor, academy_id, "staff.workdays.updated", f"Configured workdays for {input.membershipId}")
+            return {"membershipId": input.membershipId, "effectiveOn": local_date, "weekdays": input.weekdays}
+
+    async def personal_month(self, actor: Identity, academy_id: UUID, month: date):
+        if month.day != 1: raise ApiError(400, "Month must be its first day.")
+        next_month = (month.replace(day=28) + timedelta(days=4)).replace(day=1)
+        async with self.db.as_actor(actor, academy_id) as session:
+            membership = await self.member(session, actor, academy_id)
+            today = await session.scalar(text('SELECT (now() AT TIME ZONE timezone)::date FROM "Academy" WHERE id=:academy'), {"academy": academy_id})
+            if 'ATHLETE' in membership['roles']:
+                athlete_id = await session.scalar(text('SELECT id FROM "Athlete" WHERE "academyId"=:academy AND "membershipId"=:member AND active'), {"academy": academy_id, "member": membership['id']})
+                if not athlete_id: raise ApiError(404, "Athlete profile not linked.")
+                await self.snapshot_batch_opportunities(session, academy_id, athlete_id)
+                occurrences = rows(await session.execute(text('''SELECT o."localDate",o."batchName",o.status
+                  FROM "AthleteBatchOpportunity" o
+                  WHERE o."academyId"=:academy AND o."athleteId"=:athlete AND o."localDate">=:start AND o."localDate"<:end ORDER BY o."localDate",o."startTime"'''), {"academy": academy_id, "athlete": athlete_id, "start": month, "end": next_month}))
+                person_type = 'ATHLETE'
+                daily = rows(await session.execute(text('SELECT "localDate",status,"checkedAt" FROM "AthleteDailyAttendance" WHERE "academyId"=:academy AND "athleteId"=:athlete AND "localDate">=:start AND "localDate"<:end'), {"academy": academy_id, "athlete": athlete_id, "start": month, "end": next_month}))
+                grouped = {}
+                for item in occurrences:
+                    entry = grouped.setdefault(item['localDate'], {'names': [], 'statuses': []})
+                    entry['names'].append(item['batchName']); entry['statuses'].append(item['status'])
+                for item in daily:
+                    if item['localDate'] in grouped or item['checkedAt']:
+                        entry = grouped.setdefault(item['localDate'], {'names': [], 'statuses': []})
+                        entry['daily'] = item['status']; entry['checkedAt'] = item['checkedAt']
+                values = []
+                for day, entry in sorted(grouped.items()):
+                    statuses = entry['statuses']
+                    status = entry.get('daily') or ('PRESENT' if 'PRESENT' in statuses else 'EXCUSED' if statuses and all(value == 'EXCUSED' for value in statuses) else None)
+                    values.append((day, ', '.join(entry['names']) or 'Academy check-in', status, entry.get('checkedAt')))
+            else:
+                person_type = 'STAFF'
+                rules = rows(await session.execute(text('SELECT "effectiveOn",weekdays FROM "StaffWorkdayRule" WHERE "academyId"=:academy AND "membershipId"=:member AND "effectiveOn"<:end ORDER BY "effectiveOn"'), {"academy": academy_id, "member": membership['id'], "end": next_month}))
+                marks = rows(await session.execute(text('''SELECT s."localDate",s.status,s."checkedAt" FROM "StaffAttendance" s WHERE s."academyId"=:academy AND s."membershipId"=:member AND s."localDate">=:start AND s."localDate"<:end'''), {"academy": academy_id, "member": membership['id'], "start": month, "end": next_month}))
+                coach_marks = rows(await session.execute(text('''SELECT c."localDate",c.status FROM "CoachAttendance" c JOIN "Coach" coach ON coach.id=c."coachId" WHERE coach."academyId"=:academy AND coach."membershipId"=:member AND c."localDate">=:start AND c."localDate"<:end'''), {"academy": academy_id, "member": membership['id'], "start": month, "end": next_month}))
+                status_by_date = {item['localDate']: (str(item['status']), None) for item in coach_marks}
+                status_by_date.update({item['localDate']: (str(item['status']), item['checkedAt']) for item in marks})
+                values = []
+                day = month
+                while day < next_month and day <= today:
+                    rule = next((r for r in reversed(rules) if r['effectiveOn'] <= day), None)
+                    if rule and day.weekday() in rule['weekdays'] or day in status_by_date:
+                        status, checked_at = status_by_date.get(day, (None, None))
+                        values.append((day,'Workday',status,checked_at))
+                    day += timedelta(days=1)
+            days = {}
+            for local_date, label, status, checked_at in values:
+                item = days.setdefault(local_date, {"localDate": local_date, "eligible": 0, "present": 0, "excused": 0, "status": "UNMARKED", "items": [], "checkedAt": checked_at})
+                item['items'].append(label)
+                if status == 'EXCUSED': item['excused'] += 1
+                else:
+                    item['eligible'] += 1
+                    if status == 'PRESENT': item['present'] += 1
+            for item in days.values():
+                item['status'] = 'EXCUSED' if item['excused'] == len(item['items']) else 'PRESENT' if item['present'] == item['eligible'] else 'PARTIAL' if item['present'] else 'ABSENT'
+            eligible = sum(item['eligible'] for item in days.values()); present = sum(item['present'] for item in days.values())
+            return {"month": month, "eligible": eligible, "present": present, "rate": round(100 * present / eligible) if eligible else None, "days": list(days.values()), "personType": person_type}
 
     async def refresh_invoice(self, session: AsyncSession, invoice_id: UUID | None):
         if not invoice_id: return
@@ -505,6 +631,19 @@ class AcademyService:
             distribution = rows(await session.execute(text('''SELECT p."branchId",COALESCE(b.name,'Unassigned') "branchName",sum(p.amount)-COALESCE(sum(r.amount),0) revenue FROM "Payment" p LEFT JOIN "Branch" b ON b.id=p."branchId" LEFT JOIN (SELECT "paymentId",sum(amount) amount FROM "Refund" GROUP BY "paymentId") r ON r."paymentId"=p.id WHERE p."academyId"=:academy AND p."paidOn" BETWEEN :start AND :end GROUP BY p."branchId",b.name ORDER BY revenue DESC'''), {"academy": academy_id, "start": start, "end": end}))
             return {"collections": collections, "refunds": refunds, "expenses": expenses, "outstanding": outstanding, "net": collections-refunds-expenses, "monthlyTrend": trends, "branchDistribution": distribution}
 
+    async def branch_revenue(self, actor: Identity, academy_id: UUID, month: date):
+        if month.day != 1: raise ApiError(400, "Month must be the first day of a month.")
+        async with self.db.as_actor(actor, academy_id) as session:
+            await self.finance_member(session, actor, academy_id)
+            return rows(await session.execute(text('''SELECT p."branchId",COALESCE(b.name,'Unassigned') "branchName",sum(p.amount-COALESCE(r.amount,0)) revenue
+                FROM "Payment" p
+                LEFT JOIN "Invoice" i ON i.id=p."invoiceId" AND i."academyId"=p."academyId"
+                LEFT JOIN "Branch" b ON b.id=p."branchId" AND b."academyId"=p."academyId"
+                LEFT JOIN (SELECT "paymentId",sum(amount) amount FROM "Refund" WHERE "academyId"=:academy GROUP BY "paymentId") r ON r."paymentId"=p.id
+                WHERE p."academyId"=:academy AND ((p.kind='FEE' AND i."billingMonth"=:month)
+                    OR (p.kind='AD_HOC' AND p."paidOn">=:month AND p."paidOn"<CAST(:month AS date)+interval '1 month'))
+                GROUP BY p."branchId",b.name ORDER BY revenue DESC'''), {"academy": academy_id, "month": month}))
+
     async def link_guardian(self, actor: Identity, academy_id: UUID, input: GuardianLinkInput):
         async with self.db.as_actor(actor, academy_id) as session:
             await self.member(session, actor, academy_id, True)
@@ -541,39 +680,67 @@ class AcademyService:
             if source == "QR" and not await session.scalar(text("SELECT 1 FROM \"TrainingSession\" WHERE id=:session AND status='OPEN'"), {"session": session_id}): raise ApiError(409, "Session check-in is not open.")
             if not await session.scalar(text('SELECT 1 FROM "SessionRoster" WHERE "sessionId"=:session AND "athleteId"=:athlete AND "academyId"=:academy'), {"session": session_id, "athlete": athlete_id, "academy": academy_id}): raise ApiError(404, "Athlete is not on this session roster.")
             existing = row(await session.execute(text('SELECT id, status FROM "AthleteAttendance" WHERE "sessionId"=:session AND "athleteId"=:athlete'), {"session": session_id, "athlete": athlete_id}))
-            if existing and source == "QR": return row(await session.execute(text('SELECT id,"sessionId","athleteId",status,source,"checkedAt" FROM "AthleteAttendance" WHERE id=:id'), {"id": existing["id"]}))
+            if existing and source == "QR" and existing['status'] == 'PRESENT': raise ApiError(409, "Already checked in for this class.")
             value = row(await session.execute(text('INSERT INTO "AthleteAttendance" ("academyId","sessionId","athleteId",status,source,"actorId","correctionReason") VALUES (:academy,:session,:athlete,CAST(:status AS "AttendanceStatus"),:source,:actor,:reason) ON CONFLICT ("sessionId","athleteId") DO UPDATE SET status=EXCLUDED.status, source=EXCLUDED.source, "actorId"=EXCLUDED."actorId", "correctionReason"=EXCLUDED."correctionReason", "updatedAt"=now() RETURNING id,"sessionId","athleteId",status,source,"checkedAt"'), {"academy": academy_id, "session": session_id, "athlete": athlete_id, "status": input.status, "source": source, "actor": actor.id, "reason": input.correctionReason}))
-            await self.audit(session, actor, academy_id, "attendance.marked", f"Recorded {input.status} attendance")
+            await self.snapshot_batch_opportunities(session, academy_id, athlete_id)
+            await session.execute(text('''UPDATE "AthleteBatchOpportunity" o SET status=CAST(:status AS "AttendanceStatus"),source=:source,"updatedAt"=now()
+              FROM "TrainingSession" s JOIN "Academy" a ON a.id=s."academyId"
+              WHERE s.id=:session AND o."academyId"=:academy AND o."athleteId"=:athlete
+                AND o."localDate"=(s."startsAt" AT TIME ZONE a.timezone)::date AND o.status IS NULL'''), {"status": input.status, "source": source, "session": session_id, "academy": academy_id, "athlete": athlete_id})
+            if source != "QR": await self.audit(session, actor, academy_id, "attendance.marked", f"Recorded {input.status} attendance")
             return value
 
-    async def create_qr(self, actor: Identity, academy_id: UUID, input: QrInput):
-        if (input.kind == "SESSION") != bool(input.sessionId): raise ApiError(400, "Session QR codes require a session; staff QR codes do not.")
+    async def member_check_in_code(self, actor: Identity, academy_id: UUID):
         async with self.db.as_actor(actor, academy_id) as session:
             member = await self.member(session, actor, academy_id)
-            if input.kind == "SESSION" and "ADMIN" not in member["roles"]:
-                allowed = await session.scalar(text('SELECT 1 FROM "TrainingSession" WHERE id=:session AND "academyId"=:academy AND "coachMembershipId"=:member'), {"session": input.sessionId, "academy": academy_id, "member": member["id"]})
-                if not allowed: raise ApiError(403, "You are not assigned to this session.")
-            token = token_hex(32); expires = datetime.now(timezone.utc) + timedelta(minutes=2)
-            await session.execute(text('INSERT INTO "AttendanceQr" ("academyId",kind,"branchId","sessionId","tokenHash","expiresAt","createdBy") VALUES (:academy,CAST(:kind AS "QrKind"),:branch,:session,:hash,:expires,:actor)'), {"academy": academy_id, "kind": input.kind, "branch": input.branchId, "session": input.sessionId, "hash": hashlib.sha256(token.encode()).hexdigest(), "expires": expires, "actor": actor.id})
-            origin = os.getenv("MOBILE_APP_ORIGIN", "http://localhost:5175")
-            return {"token": token, "url": f"{origin}/check-in#{token}", "expiresAt": expires}
+            if not set(member['roles']) & {'ATHLETE', 'ADMIN', 'COACH', 'FINANCE', 'SCORER'}:
+                raise ApiError(403, "This account cannot check in.")
+            if 'ATHLETE' in member['roles'] and not await session.scalar(text('SELECT 1 FROM "Athlete" WHERE "academyId"=:academy AND "membershipId"=:member AND active'), {"academy": academy_id, "member": member['id']}):
+                raise ApiError(403, "Your athlete profile is not linked.")
+        expires = datetime.now(timezone.utc) + timedelta(minutes=5)
+        payload = base64.urlsafe_b64encode(json.dumps({'academy': str(academy_id), 'user': str(actor.id), 'expires': int(expires.timestamp())}, separators=(',', ':')).encode()).rstrip(b'=').decode()
+        signature = hmac.new(self.handoff_key.encode(), f'member-check-in:{payload}'.encode(), hashlib.sha256).hexdigest()
+        return {'code': f'rallyone-member:{payload}.{signature}', 'expiresAt': expires}
 
-    async def redeem_qr(self, actor: Identity, input):
-        digest = hashlib.sha256(input.token.encode()).hexdigest()
-        async with self.db.as_actor(actor) as session:
-            qr = row(await session.execute(text('SELECT id,"academyId",kind,"branchId","sessionId" FROM "AttendanceQr" WHERE "tokenHash"=:hash AND NOT closed AND "expiresAt">now()'), {"hash": digest}))
-            if not qr: raise ApiError(400, "This check-in code has expired or is unavailable.")
-            await session.execute(text("SELECT set_config('app.academy', :academy, true)"), {"academy": str(qr["academyId"])})
-            membership = row(await session.execute(text('SELECT id, roles FROM "Membership" WHERE "academyId"=:academy AND "userId"=:actor AND active'), {"academy": qr["academyId"], "actor": actor.id}))
-            if not membership: raise ApiError(403, "You do not belong to this academy.")
-            if qr["kind"] == "STAFF":
-                if not set(membership["roles"]) & {"ADMIN", "COACH", "FINANCE", "SCORER"}: raise ApiError(403, "This code is for academy staff.")
-                local_date = await session.scalar(text("SELECT (now() AT TIME ZONE 'Asia/Kolkata')::date"))
-                value = row(await session.execute(text('INSERT INTO "StaffAttendance" ("academyId","membershipId","branchId","localDate",source,"actorId") VALUES (:academy,:member,:branch,:date,\'QR\',:actor) ON CONFLICT ("academyId","membershipId","localDate") DO UPDATE SET "updatedAt"=now() RETURNING id,"membershipId","branchId","localDate",status,source,"checkedAt"'), {"academy": qr["academyId"], "member": membership["id"], "branch": qr["branchId"], "date": local_date, "actor": actor.id}))
-                await self.audit(session, actor, qr["academyId"], "staff.attendance.checked_in", "Checked in via QR")
-                return value
-            athlete_id = input.athleteId
-            if not athlete_id: raise ApiError(400, "Select an athlete to check in.")
-            allowed = await session.scalar(text('SELECT 1 FROM "Athlete" a WHERE a.id=:athlete AND a."academyId"=:academy AND (a."membershipId"=:member OR EXISTS (SELECT 1 FROM "GuardianAthlete" g WHERE g."athleteId"=a.id AND g."guardianMembershipId"=:member))'), {"athlete": athlete_id, "academy": qr["academyId"], "member": membership["id"]})
-            if not allowed: raise ApiError(403, "You cannot check in this athlete.")
-            return await self.mark_attendance(actor, qr["academyId"], qr["sessionId"], athlete_id, AttendanceInput(status="PRESENT"), "QR")
+    async def scan_member(self, actor: Identity, academy_id: UUID, code: str):
+        try:
+            payload, signature = code.removeprefix('rallyone-member:').split('.')
+            expected = hmac.new(self.handoff_key.encode(), f'member-check-in:{payload}'.encode(), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(signature, expected): raise ValueError()
+            data = json.loads(base64.urlsafe_b64decode(payload + '=' * (-len(payload) % 4)))
+            member_user = UUID(data['user'])
+            if UUID(data['academy']) != academy_id: raise ApiError(403, "This code belongs to another academy.")
+            if data['expires'] <= datetime.now(timezone.utc).timestamp(): raise ApiError(410, "This member code has expired. Ask for a fresh code.")
+        except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+            raise ApiError(400, "This is not a valid member code.")
+        async with self.db.as_actor(actor, academy_id) as session:
+            await self.member(session, actor, academy_id, True)
+            member = row(await session.execute(text('''SELECT m.id,m.name,m.roles FROM "Membership" m
+              WHERE m."academyId"=:academy AND m."userId"=:user AND m.active AND app_private.active_check_in_member(m."userId")'''), {"academy": academy_id, "user": member_user}))
+            if not member: raise ApiError(403, "This member is no longer active here.")
+            checked_at = datetime.now(timezone.utc)
+            local_date = await session.scalar(text('SELECT (CAST(:checked AS timestamptz) AT TIME ZONE timezone)::date FROM "Academy" WHERE id=:academy'), {"checked": checked_at, "academy": academy_id})
+            athlete_id = await session.scalar(text('SELECT id FROM "Athlete" WHERE "academyId"=:academy AND "membershipId"=:member AND active'), {"academy": academy_id, "member": member['id']})
+            if 'ATHLETE' in member['roles']:
+                if not athlete_id: raise ApiError(403, "This athlete profile is not active.")
+                await self.snapshot_batch_opportunities(session, academy_id, athlete_id)
+                marked = row(await session.execute(text('''INSERT INTO "AthleteDailyAttendance"("academyId","athleteId","localDate",status,"actorId","checkedAt")
+                  VALUES(:academy,:athlete,:date,'PRESENT',:actor,:checked)
+                  ON CONFLICT ("academyId","athleteId","localDate") DO UPDATE SET status='PRESENT',"actorId"=:actor,"checkedAt"=:checked,"updatedAt"=now()
+                  WHERE "AthleteDailyAttendance".status<>'PRESENT' RETURNING id'''), {"academy": academy_id, "athlete": athlete_id, "date": local_date, "actor": actor.id, "checked": checked_at}))
+                if not marked: raise ApiError(409, "Already checked in today.")
+                await session.execute(text('''UPDATE "AthleteBatchOpportunity" SET status='PRESENT',source='QR',"updatedAt"=now()
+                  WHERE "academyId"=:academy AND "athleteId"=:athlete AND "localDate"=:date'''), {"academy": academy_id, "athlete": athlete_id, "date": local_date})
+                person_type = 'ATHLETE'
+            elif set(member['roles']) & {'ADMIN', 'COACH', 'FINANCE', 'SCORER'}:
+                branch = await session.scalar(text('SELECT id FROM "Branch" WHERE "academyId"=:academy ORDER BY "createdAt" LIMIT 1'), {"academy": academy_id})
+                if not branch: raise ApiError(409, "Add an academy branch before checking in staff.")
+                marked = row(await session.execute(text('''INSERT INTO "StaffAttendance"("academyId","membershipId","branchId","localDate",source,"actorId","checkedAt")
+                  VALUES(:academy,:member,:branch,:date,'QR',:actor,:checked)
+                  ON CONFLICT ("academyId","membershipId","localDate") DO UPDATE SET status='PRESENT',"checkedAt"=:checked,"updatedAt"=now()
+                  WHERE "StaffAttendance".status<>'PRESENT' RETURNING id'''), {"academy": academy_id, "member": member['id'], "branch": branch, "date": local_date, "actor": actor.id, "checked": checked_at}))
+                if not marked: raise ApiError(409, "Already checked in today.")
+                person_type = 'STAFF'
+            else: raise ApiError(403, "This account cannot check in.")
+            await self.audit(session, actor, academy_id, 'attendance.scanned', f"Scanned {member['id']} at {checked_at.isoformat()}")
+            return {'name': member['name'], 'personType': person_type, 'localDate': local_date, 'checkedAt': checked_at, 'status': 'PRESENT'}

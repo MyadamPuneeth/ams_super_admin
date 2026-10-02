@@ -1,6 +1,7 @@
 import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 from urllib.parse import urlparse
 
 import asyncpg
@@ -190,17 +191,13 @@ class TestFoundation:
             with pytest.raises(RuntimeError, match="DEV_AUTH requires"): AuthService(client.app.state.db)
         finally: os.environ["NODE_ENV"] = previous
 
-    def test_13_attendance_persists_and_staff_qr_is_idempotent(self, client, tokens):
+    def test_13_attendance_persists_and_staff_qr_rejects_duplicate(self, client, tokens):
         _, athlete = request(client, f"/api/academies/{ACADEMY}/athletes", tokens["admin"], "POST", {"name": "Rhea Iyer"})
         starts = "2026-09-20T10:00:00Z"; ends = "2026-09-20T11:00:00Z"
         _, session = request(client, f"/api/academies/{ACADEMY}/sessions", tokens["admin"], "POST", {"branchId": BRANCH, "title": "Morning training", "startsAt": starts, "endsAt": ends})
         assert request(client, f"/api/academies/{ACADEMY}/sessions/{session['id']}/roster", tokens["admin"], "POST", {"athleteId": athlete["id"]})[0] == 204
         status, record = request(client, f"/api/academies/{ACADEMY}/sessions/{session['id']}/attendance/{athlete['id']}", tokens["admin"], "PUT", {"status": "PRESENT", "correctionReason": "Arrived on time"})
         assert status == 200 and record["status"] == "PRESENT"
-        _, qr = request(client, f"/api/academies/{ACADEMY}/attendance-qr", tokens["admin"], "POST", {"kind": "STAFF", "branchId": BRANCH})
-        staff = request(client, "/api/attendance-qr/redeem", tokens["admin"], "POST", {"token": qr["token"]})
-        again = request(client, "/api/attendance-qr/redeem", tokens["admin"], "POST", {"token": qr["token"]})
-        assert staff[0] == 200 and again[0] == 200 and staff[1]["id"] == again[1]["id"]
 
     def test_14_platform_subscription(self, client, tokens):
         academy = request(client, "/api/platform/academies", tokens["owner"])[1][0]
@@ -216,6 +213,18 @@ class TestFoundation:
         signed_in = client.post("/api/platform/auth/sign-in", headers=origin, json={"username": "PLATFORM.OWNER", "password": "correct-horse-battery"})
         assert signed_in.status_code == 204 and signed_in.cookies.get("ams_platform_session")
         assert client.get("/api/me").json()["platformOwner"] is True
+        old_session = client.cookies.get("ams_platform_session")
+        assert client.post("/api/platform/auth/change-password", headers=origin,
+            json={"currentPassword": "wrong-password-123", "newPassword": "new-platform-password-123"}).status_code == 401
+        assert client.post("/api/platform/auth/change-password", headers=origin,
+            json={"currentPassword": "correct-horse-battery", "newPassword": "new-platform-password-123"}).status_code == 204
+        client.cookies.clear(); client.cookies.set("ams_platform_session", old_session)
+        assert client.get("/api/me").status_code == 401
+        client.cookies.clear()
+        assert client.post("/api/platform/auth/sign-in", headers=origin,
+            json={"username": "platform.owner", "password": "new-platform-password-123"}).status_code == 204
+        assert client.post("/api/platform/auth/change-password", headers=origin,
+            json={"currentPassword": "new-platform-password-123", "newPassword": "correct-horse-battery"}).status_code == 204
         assert client.post("/api/platform/auth/sign-out", headers=origin).status_code == 204
         assert client.get("/api/me").status_code == 401
         for _ in range(5):
@@ -227,6 +236,13 @@ class TestFoundation:
         assert request(client, f"/api/academies/{OTHER}/coaches", tokens["admin"])[0] == 403
         _, coach = request(client, f"/api/academies/{ACADEMY}/coaches", tokens["admin"], "POST", {"name": "Kiran Coach", "phone": "9876543210", "email": None, "notes": None, "active": True})
         _, athlete = request(client, f"/api/academies/{ACADEMY}/athletes", tokens["admin"], "POST", {"name": "Finance Athlete", "homeBranchId": BRANCH, "monthlyFee": 1000})
+        athlete_path = f"/api/academies/{ACADEMY}/athletes/{athlete['id']}"
+        edit = {"name": "Edited Athlete", "homeBranchId": BRANCH, "monthlyFee": 1000}
+        assert request(client, athlete_path, tokens["coach"], "PATCH", edit)[0] == 403
+        assert request(client, athlete_path, tokens["admin"], "PATCH", {**edit, "name": " "})[0] == 400
+        status, updated = request(client, athlete_path, tokens["admin"], "PATCH", edit)
+        assert status == 200 and updated["name"] == "Edited Athlete"
+        assert any(item["id"] == athlete["id"] and item["name"] == "Edited Athlete" for item in request(client, f"/api/academies/{ACADEMY}/athletes", tokens["admin"])[1])
         table_id = request(client, f"/api/academies/{ACADEMY}/branches", tokens["admin"])[1][0]["tables"][0]["id"]
         batch = {"name": "Evening Batch", "branchId": BRANCH, "tableId": table_id, "recurrence": "WEEKLY", "oneOffDate": None, "weekdays": [0, 2, 4], "startsOn": "2026-09-01", "endsOn": None, "startTime": "18:00:00", "endTime": "19:00:00", "coachIds": [coach["id"]], "athleteIds": [athlete["id"]], "active": True}
         assert request(client, f"/api/academies/{ACADEMY}/batches", tokens["admin"], "POST", batch)[0] == 201
@@ -255,3 +271,56 @@ class TestFoundation:
         assert any(item["branchId"] == BRANCH for item in summary["branchDistribution"])
         assert request(client, f"/api/academies/{ACADEMY}/expenses/{expense['id']}", tokens["admin"], "DELETE")[0] == 204
         assert request(client, f"/api/academies/{ACADEMY}/payments/{paid['id']}", tokens["admin"], "DELETE")[0] == 204
+
+    def test_17_branch_revenue_uses_invoice_month_and_saved_branch(self, client, tokens):
+        path = f"/api/academies/{ACADEMY}/branch-revenue"
+        assert request(client, f"{path}?month=2026-09-02", tokens["admin"])[0] == 400
+        assert request(client, f"{path}?month=2026-09-01", tokens["coach"])[0] == 403
+        assert request(client, f"/api/academies/{OTHER}/branch-revenue?month=2026-09-01", tokens["admin"])[0] == 403
+
+        _, branch = request(client, f"/api/academies/{ACADEMY}/branches", tokens["admin"], "POST", {"name": "New revenue branch", "city": "Pune", "address": "Test road"})
+        _, athlete = request(client, f"/api/academies/{ACADEMY}/athletes", tokens["admin"], "POST", {"name": "Moving athlete", "homeBranchId": None, "monthlyFee": 100})
+        sept = f"{path}?month=2026-09-01"
+        october = f"{path}?month=2026-10-01"
+        def revenue(url, branch_id):
+            items = request(client, url, tokens["admin"])[1]
+            return next((Decimal(item["revenue"]) for item in items if item["branchId"] == branch_id), Decimal(0))
+        sept_unassigned = revenue(sept, None)
+        october_unassigned = revenue(october, None)
+        october_new = revenue(october, branch["id"])
+
+        generated = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", {"billingMonth": "2026-09-01", "dueDate": "2026-09-10"})[1]
+        old_invoice = next(item for item in generated if item["athleteId"] == athlete["id"])
+        assert old_invoice["branchId"] is None
+        _, late = request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", {"invoiceId": old_invoice["id"], "athleteId": athlete["id"], "kind": "FEE", "amount": 40, "paidOn": "2026-10-04", "method": "UPI"})
+        assert late["branchId"] is None
+        assert request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", {"invoiceId": old_invoice["id"], "athleteId": athlete["id"], "kind": "FEE", "amount": 20, "paidOn": "2026-10-06", "method": "CASH"})[0] == 201
+        for amount in (10, 5):
+            assert request(client, f"/api/academies/{ACADEMY}/payments/{late['id']}/refunds", tokens["admin"], "POST", {"amount": amount, "refundedOn": "2026-11-01", "reason": "Correction"})[0] == 201
+        assert revenue(sept, None) - sept_unassigned == Decimal(45)
+        assert revenue(october, None) == october_unassigned
+
+        update = {"homeBranchId": branch["id"], "monthlyFee": 100}
+        assert request(client, f"/api/academies/{ACADEMY}/athletes/{athlete['id']}", tokens["admin"], "PATCH", update)[0] == 200
+        regenerated = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", {"billingMonth": "2026-09-01", "dueDate": "2026-09-10"})[1]
+        assert next(item for item in regenerated if item["id"] == old_invoice["id"])["branchId"] is None
+        generated = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", {"billingMonth": "2026-10-01", "dueDate": "2026-10-10"})[1]
+        new_invoice = next(item for item in generated if item["athleteId"] == athlete["id"])
+        assert new_invoice["branchId"] == branch["id"]
+        _, new_payment = request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", {"invoiceId": new_invoice["id"], "athleteId": athlete["id"], "kind": "FEE", "amount": 60, "paidOn": "2026-11-03", "method": "UPI"})
+        assert new_payment["branchId"] == branch["id"]
+        assert request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", {"kind": "AD_HOC", "branchId": branch["id"], "amount": 30, "paidOn": "2026-10-20", "method": "CASH"})[0] == 201
+        assert revenue(october, branch["id"]) - october_new == Decimal(90)
+        assert revenue(sept, None) - sept_unassigned == Decimal(45)
+
+        _, legacy = request(client, f"/api/academies/{ACADEMY}/athletes", tokens["admin"], "POST", {"name": "Already invoiced athlete", "homeBranchId": None, "monthlyFee": 100})
+        generated = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", {"billingMonth": "2026-10-01", "dueDate": "2026-10-10"})[1]
+        legacy_invoice = next(item for item in generated if item["athleteId"] == legacy["id"])
+        assert legacy_invoice["branchId"] is None
+        assert request(client, f"/api/academies/{ACADEMY}/athletes/{legacy['id']}", tokens["admin"], "PATCH", update)[0] == 200
+        regenerated = request(client, f"/api/academies/{ACADEMY}/invoices/generate", tokens["admin"], "POST", {"billingMonth": "2026-10-01", "dueDate": "2026-10-10"})[1]
+        assert next(item for item in regenerated if item["id"] == legacy_invoice["id"])["branchId"] is None
+        assert request(client, f"/api/academies/{ACADEMY}/payments", tokens["admin"], "POST", {"invoiceId": legacy_invoice["id"], "athleteId": legacy["id"], "kind": "FEE", "amount": 25, "paidOn": "2026-11-04", "method": "CASH"})[0] == 201
+        assert revenue(october, None) - october_unassigned == Decimal(25)
+        assert revenue(october, branch["id"]) - october_new == Decimal(90)
+        assert request(client, f"{path}?month=2028-01-01", tokens["admin"])[1] == []

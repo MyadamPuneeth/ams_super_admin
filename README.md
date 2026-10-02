@@ -24,6 +24,24 @@ For the super-admin app, set `PLATFORM_OWNER_USERNAME`, `PLATFORM_OWNER_PASSWORD
 
 Academy onboarding also requires a stable `CREDENTIAL_HANDOFF_KEY` of at least 32 characters. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`starttls`, `ssl`, or `none`), `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM` to email the first administrator's temporary credentials. If SMTP delivery fails, the academy is still created and the platform owner can retry from the dashboard.
 
+### Gmail SMTP
+
+Enable [Google 2-Step Verification and create an app password](https://support.google.com/accounts/answer/185833), then fill in the SMTP section of `.env`:
+
+```dotenv
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURITY=starttls
+SMTP_USERNAME=your-address@gmail.com
+SMTP_PASSWORD=your-16-character-app-password
+SMTP_FROM=
+USER_APP_ORIGIN=http://localhost:5173
+```
+
+Paste the app password without spaces. A Gmail API key or your normal Google password will not authenticate this SMTP mailer. App passwords must be available for your Google account. `SMTP_FROM` defaults to `SMTP_USERNAME`; if overriding it, use that address or a verified Gmail sending alias. Set `USER_APP_ORIGIN` to the academy application's actual URL so emails contain the correct sign-in link.
+
+Stop and restart `npm start` after editing `.env`; Python auto-reload does not reload the parent environment. Create an academy to send its administrator credentials, or use **Retry email** for a pending credential handoff. Delivery cannot be verified until real Gmail credentials are configured.
+
 ## Startup options
 
 ```powershell

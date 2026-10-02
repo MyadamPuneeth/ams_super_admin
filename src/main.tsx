@@ -57,6 +57,20 @@ function SignIn({ onSuccess }: { onSuccess: () => Promise<void> }) {
   </main>;
 }
 
+function PasswordDialog({ onClose }: { onClose: () => void }) {
+  const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false);
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setBusy(true); setMessage(''); const data = new FormData(event.currentTarget);
+    try {
+      if (data.get('newPassword') !== data.get('confirmation')) throw new Error('Passwords do not match.');
+      await api.platformChangePassword({ currentPassword: String(data.get('currentPassword')), newPassword: String(data.get('newPassword')) });
+      onClose();
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not change password.'); }
+    finally { setBusy(false); }
+  };
+  return <Modal title="Change password" onClose={onClose}><form className="dialog-form" onSubmit={submit}><label>Current password<input name="currentPassword" type="password" autoComplete="current-password" minLength={12} required /></label><label>New password<input name="newPassword" type="password" autoComplete="new-password" minLength={12} required /></label><label>Confirm new password<input name="confirmation" type="password" autoComplete="new-password" minLength={12} required /></label>{message && <p className="form-error" role="alert">{message}</p>}<div className="dialog-actions"><button type="button" className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={busy}>{busy ? 'Saving...' : 'Change password'}</button></div></form></Modal>;
+}
+
 function CredentialDialog({ handoff: initial, initialPassword = '', onClose, onSaved }: { handoff: Handoff; initialPassword?: string; onClose: () => void; onSaved: () => Promise<void> }) {
   const [handoff, setHandoff] = useState(initial); const [password, setPassword] = useState(initialPassword); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false);
   useEffect(() => { if (!password) void api.revealCredentials(handoff.id).then(value => setPassword(value.temporaryPassword)).catch(error => setMessage(error instanceof Error ? error.message : 'Could not reveal credentials.')); }, [handoff.id, password]);
@@ -127,7 +141,7 @@ function SubscriptionDialog({ academy, onClose, onSaved }: { academy: Academy; o
 }
 
 function Dashboard({ me, academies, handoffs, reload, signOut }: { me: Me; academies: Academy[]; handoffs: Handoff[]; reload: () => Promise<void>; signOut: () => Promise<void> }) {
-  const [query, setQuery] = useState(''); const [adding, setAdding] = useState(false); const [editing, setEditing] = useState<Academy>(); const [handoff, setHandoff] = useState<Handoff>(); const [message, setMessage] = useState('');
+  const [query, setQuery] = useState(''); const [changing, setChanging] = useState(false); const [adding, setAdding] = useState(false); const [editing, setEditing] = useState<Academy>(); const [handoff, setHandoff] = useState<Handoff>(); const [message, setMessage] = useState('');
   const filtered = useMemo(() => { const value = query.trim().toLowerCase(); return academies.filter(item => !value || item.name.toLowerCase().includes(value) || item.slug.toLowerCase().includes(value)); }, [academies, query]);
   const toggle = async (academy: Academy) => {
     const action = academy.active ? 'suspend' : 'activate';
@@ -137,7 +151,7 @@ function Dashboard({ me, academies, handoffs, reload, signOut }: { me: Me; acade
   return <div className="app-shell">
     <aside><div className="brand"><Mark /><span>AMS Platform</span></div><nav aria-label="Main navigation"><a className="active" href="#academies"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z" /></svg>Academies</a></nav><div className="aside-user"><span>{me.name.slice(0, 1).toUpperCase()}</span><div><b>{me.name}</b><small>Platform owner</small></div></div></aside>
     <main className="dashboard" id="academies">
-      <header><div className="mobile-brand"><Mark /><b>AMS</b></div><div className="header-user"><span>{me.name}</span><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
+      <header><div className="mobile-brand"><Mark /><b>AMS</b></div><div className="header-user"><span>{me.name}</span><button className="text-button" onClick={() => setChanging(true)}>Change password</button><button className="text-button" onClick={() => void signOut()}>Sign out</button></div></header>
       <div className="content">
         <section className="hero"><div><span className="eyebrow purple">Academy network</span><h1>Good to see you, {me.name.split(' ')[0]}.</h1><p>Manage every academy, subscription and access status from one place.</p></div><button className="primary" onClick={() => setAdding(true)}>+ Add academy</button></section>
         <section className="metrics" aria-label="Academy summary"><article><span className="metric-icon violet" aria-hidden="true">A</span><div><b>{academies.length}</b><small>Total academies</small></div></article><article><span className="metric-icon green" aria-hidden="true">✓</span><div><b>{academies.filter(item => item.active).length}</b><small>Active academies</small></div></article><article><span className="metric-icon orange" aria-hidden="true">S</span><div><b>{academies.filter(item => item.subscriptionStatus === 'TRIAL').length}</b><small>Active trials</small></div></article></section>
@@ -149,7 +163,7 @@ function Dashboard({ me, academies, handoffs, reload, signOut }: { me: Me; acade
         </section>
       </div>
     </main>
-    {adding && <AcademyDialog onClose={() => setAdding(false)} onSaved={reload} />}{editing && <SubscriptionDialog academy={editing} onClose={() => setEditing(undefined)} onSaved={reload} />}{handoff && <CredentialDialog handoff={handoff} onClose={() => setHandoff(undefined)} onSaved={reload} />}
+    {changing && <PasswordDialog onClose={() => setChanging(false)} />}{adding && <AcademyDialog onClose={() => setAdding(false)} onSaved={reload} />}{editing && <SubscriptionDialog academy={editing} onClose={() => setEditing(undefined)} onSaved={reload} />}{handoff && <CredentialDialog handoff={handoff} onClose={() => setHandoff(undefined)} onSaved={reload} />}
   </div>;
 }
 

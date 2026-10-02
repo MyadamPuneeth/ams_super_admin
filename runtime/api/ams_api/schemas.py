@@ -84,6 +84,7 @@ class PlatformSignInInput(ApiModel):
 
 class PasswordSignInInput(PlatformSignInInput): pass
 class PasswordChangeInput(ApiModel): newPassword: Annotated[str, Field(min_length=12, max_length=128)]
+class PasswordUpdateInput(PasswordChangeInput): currentPassword: Annotated[str, Field(min_length=12, max_length=128)]
 
 class BranchInput(ApiModel):
     name: Annotated[str, Field(min_length=2, max_length=100)]
@@ -151,8 +152,12 @@ class AthleteInput(ApiModel):
     monthlyFee: Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)] = Decimal("0")
     _name = field_validator("name", mode="before")(trim)
 class AthleteUpdateInput(ApiModel):
+    name: Annotated[str | None, Field(min_length=2, max_length=100)] = None
     homeBranchId: UUID | None = None
     monthlyFee: Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
+    @field_validator("name", mode="before")
+    @classmethod
+    def update_name(cls, value): return trim(value) if value is not None else None
 class GuardianLinkInput(ApiModel): guardianMembershipId: UUID; athleteId: UUID
 class SessionInput(ApiModel):
     branchId: UUID; coachMembershipId: UUID | None = None; title: Annotated[str, Field(min_length=2, max_length=120)]
@@ -165,12 +170,30 @@ class AttendanceInput(ApiModel):
     @field_validator("correctionReason", mode="before")
     @classmethod
     def reason(cls, value): return trim(value) if value else None
-class QrInput(ApiModel): kind: Annotated[str, Field(pattern="^(SESSION|STAFF)$")]; branchId: UUID; sessionId: UUID | None = None
-class RedeemQrInput(ApiModel): token: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]; athleteId: UUID | None = None
 class AthleteDto(BaseModel): id: UUID; name: str; membershipId: UUID | None; homeBranchId: UUID | None; monthlyFee: Decimal; active: bool
 class SessionDto(BaseModel): id: UUID; branchId: UUID; coachMembershipId: UUID | None; title: str; startsAt: datetime; endsAt: datetime; status: str
 class AttendanceDto(BaseModel): id: UUID; sessionId: UUID | None = None; athleteId: UUID | None = None; membershipId: UUID | None = None; branchId: UUID | None = None; localDate: date | None = None; status: str; source: str; checkedAt: datetime
-class QrDto(BaseModel): token: str; url: str; expiresAt: datetime
+class PersonalDayDto(BaseModel): localDate: date; eligible: int; present: int; excused: int; status: str; items: list[str]; checkedAt: datetime | None = None
+class PersonalMonthDto(BaseModel): month: date; present: int; eligible: int; rate: int | None; days: list[PersonalDayDto]; personType: str
+class MemberCheckInCodeDto(BaseModel): code: str; expiresAt: datetime
+class AcademyScanInput(ApiModel): code: Annotated[str, Field(min_length=40, max_length=500)]
+class AcademyScanDto(BaseModel): name: str; personType: str; localDate: date; checkedAt: datetime; status: str
+class MobileAccountInput(ApiModel):
+    personType: Annotated[str, Field(pattern="^(ATHLETE|COACH|STAFF)$")]
+    personId: UUID | None = None
+    username: Annotated[str, Field(min_length=3, max_length=50, pattern=r"^[A-Za-z0-9._-]+$")]
+    temporaryPassword: Annotated[str, Field(min_length=12, max_length=128)]
+    email: Annotated[str, Field(min_length=3, max_length=254)]
+    name: Annotated[str, Field(min_length=2, max_length=100)]
+    _email = field_validator("email", mode="before")(valid_email)
+    _name = field_validator("name", mode="before")(trim)
+    @field_validator("username", mode="before")
+    @classmethod
+    def normalize_username(cls, value): return value.strip().lower()
+class MobileAccountDto(BaseModel): membershipId: UUID; username: str; name: str
+class MobilePasswordResetInput(ApiModel): membershipId: UUID; temporaryPassword: Annotated[str, Field(min_length=12, max_length=128)]
+class StaffWorkdaysInput(ApiModel): membershipId: UUID; weekdays: Annotated[list[int], Field(max_length=7)]
+class StaffWorkdaysDto(BaseModel): membershipId: UUID; effectiveOn: date; weekdays: list[int]
 
 class CoachInput(ApiModel):
     name: Annotated[str, Field(min_length=2, max_length=100)]
@@ -182,7 +205,7 @@ class CoachInput(ApiModel):
     @field_validator("email", mode="before")
     @classmethod
     def coach_email(cls, value): return valid_email(value) if value else None
-class CoachDto(CoachInput): id: UUID; createdAt: datetime
+class CoachDto(CoachInput): phone: str; id: UUID; membershipId: UUID | None = None; createdAt: datetime
 
 class BatchInput(ApiModel):
     name: Annotated[str, Field(min_length=2, max_length=100)]

@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from .auth import AuthService, DEMO_PROFILES, PLATFORM_COOKIE, USER_COOKIE, Identity, actor
+from .auth import AuthService, DEMO_PROFILES, PLATFORM_COOKIE, USER_COOKIE, MOBILE_COOKIE, Identity, actor
 from .database import Database
 from .errors import ApiError, api_error, body, http_error, unexpected_error, validation_error
 from .schemas import *
@@ -30,7 +30,7 @@ app.add_exception_handler(ApiError, api_error); app.add_exception_handler(Starle
 @app.middleware("http")
 async def security(request: Request, call_next):
     request.state.request_id = str(uuid4())
-    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and (request.cookies.get(PLATFORM_COOKIE) or request.cookies.get(USER_COOKIE) or request.url.path.startswith(("/api/platform/auth/", "/api/auth/password/"))):
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and (request.cookies.get(PLATFORM_COOKIE) or request.cookies.get(USER_COOKIE) or request.cookies.get(MOBILE_COOKIE) or request.url.path.startswith(("/api/platform/auth/", "/api/auth/password/", "/api/auth/mobile/"))):
         if request.headers.get("origin") not in origins: return body(403, "Request origin is not allowed.", request)
     try:
         response = await call_next(request)
@@ -38,6 +38,8 @@ async def security(request: Request, call_next):
         # Constraint failures are safe conflicts; database details stay private.
         response = body(409, "This change is not allowed in the current state.", request)
     response.headers.update({"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer"})
+    if request.cookies.get(MOBILE_COOKIE) and response.status_code < 400 and request.url.path not in {"/api/auth/mobile/sign-in", "/api/auth/mobile/sign-out", "/api/auth/mobile/change-required", "/api/auth/mobile/change"}:
+        response.set_cookie(MOBILE_COOKIE, request.cookies[MOBILE_COOKIE], max_age=34_560_000, httponly=True, secure=production, samesite="strict", path="/api")
     return response
 
 def service(request: Request) -> AcademyService: return request.app.state.service
@@ -50,6 +52,13 @@ async def platform_sign_in(input: PlatformSignInInput, request: Request, respons
 
 @app.post("/api/platform/auth/sign-out", tags=["platform"], status_code=204)
 async def platform_sign_out(response: Response): response.delete_cookie(PLATFORM_COOKIE, path="/api", secure=production, httponly=True, samesite="strict")
+@app.post("/api/platform/auth/change-password", tags=["platform"], status_code=204)
+async def platform_change_password(input: PasswordUpdateInput, request: Request, response: Response):
+    token = request.cookies.get(PLATFORM_COOKIE)
+    if not token: raise ApiError(401, "Please sign in.")
+    identity = await request.app.state.auth.verify_platform(token)
+    updated = await request.app.state.auth.update_platform_password(identity, input.currentPassword, input.newPassword)
+    response.set_cookie(PLATFORM_COOKIE, updated, max_age=28_800, httponly=True, secure=production, samesite="strict", path="/api")
 
 @app.get("/api/auth/config", tags=["authentication"], response_model=AuthConfigDto)
 async def auth_config(request: Request): return {"demo": request.app.state.auth.demo, "profiles": DEMO_PROFILES if request.app.state.auth.demo else []}
@@ -64,10 +73,50 @@ async def password_sign_in(input: PasswordSignInInput, request: Request, respons
 async def password_change(input: PasswordChangeInput, request: Request, response: Response, identity: Identity = Depends(actor)):
     token = await request.app.state.auth.change_password(identity, input.newPassword)
     response.set_cookie(USER_COOKIE, token, max_age=28_800, httponly=True, secure=production, samesite="strict", path="/api")
+@app.post("/api/auth/password/change", tags=["authentication"], status_code=204)
+async def password_update(input: PasswordUpdateInput, request: Request, response: Response, identity: Identity = Depends(actor)):
+    token = await request.app.state.auth.update_password(identity, input.currentPassword, input.newPassword)
+    response.set_cookie(USER_COOKIE, token, max_age=28_800, httponly=True, secure=production, samesite="strict", path="/api")
 @app.post("/api/auth/password/sign-out", tags=["authentication"], status_code=204)
 async def password_sign_out(response: Response): response.delete_cookie(USER_COOKIE, path="/api", secure=production, httponly=True, samesite="strict")
+@app.post("/api/auth/mobile/sign-in", tags=["authentication"], status_code=204)
+async def mobile_sign_in(input: PasswordSignInInput, request: Request, response: Response):
+    token = await request.app.state.auth.mobile_sign_in(input.username, input.password)
+    response.set_cookie(MOBILE_COOKIE, token, max_age=34_560_000, httponly=True, secure=production, samesite="strict", path="/api")
+@app.post("/api/auth/mobile/change-required", tags=["authentication"], status_code=204)
+async def mobile_change_required(input: PasswordChangeInput, request: Request, response: Response, identity: Identity = Depends(actor)):
+    token = await request.app.state.auth.mobile_change_password(identity, input.newPassword)
+    response.set_cookie(MOBILE_COOKIE, token, max_age=34_560_000, httponly=True, secure=production, samesite="strict", path="/api")
+@app.post("/api/auth/mobile/change", tags=["authentication"], status_code=204)
+async def mobile_update(input: PasswordUpdateInput, request: Request, response: Response, identity: Identity = Depends(actor)):
+    token = await request.app.state.auth.mobile_update_password(identity, input.currentPassword, input.newPassword)
+    response.set_cookie(MOBILE_COOKIE, token, max_age=34_560_000, httponly=True, secure=production, samesite="strict", path="/api")
+@app.post("/api/auth/mobile/sign-out", tags=["authentication"], status_code=204)
+async def mobile_sign_out(request: Request, response: Response):
+    if request.cookies.get(MOBILE_COOKIE): await request.app.state.auth.mobile_sign_out(request.cookies[MOBILE_COOKIE])
+    response.delete_cookie(MOBILE_COOKIE, path="/api", secure=production, httponly=True, samesite="strict")
 @app.get("/api/me", tags=["workspaces"], response_model=MeDto)
 async def me(identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.me(identity)
+@app.get("/api/auth/mobile/me", tags=["authentication"], response_model=MeDto)
+async def mobile_me(request: Request, app_service: AcademyService = Depends(service)):
+    token = request.cookies.get(MOBILE_COOKIE)
+    if not token: raise ApiError(401, "Please sign in.")
+    identity = await request.app.state.auth.mobile_identity(token)
+    return await app_service.me(identity)
+@app.get("/api/academies/{academy_id}/personal-attendance", tags=["attendance"], response_model=PersonalMonthDto)
+async def personal_attendance(academy_id: UUID, month: date, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.personal_month(identity, academy_id, month)
+@app.post("/api/academies/{academy_id}/my-check-in-code", tags=["attendance"], response_model=MemberCheckInCodeDto)
+async def my_check_in_code(academy_id: UUID, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.member_check_in_code(identity, academy_id)
+@app.post("/api/academies/{academy_id}/scan-member", tags=["attendance"], response_model=AcademyScanDto)
+async def scan_member(academy_id: UUID, input: AcademyScanInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.scan_member(identity, academy_id, input.code)
+@app.post("/api/academies/{academy_id}/mobile-accounts", tags=["academy"], response_model=MobileAccountDto)
+async def provision_mobile_account(academy_id: UUID, input: MobileAccountInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.provision_mobile_account(identity, academy_id, input)
+@app.post("/api/academies/{academy_id}/mobile-accounts/reset-password", tags=["academy"], status_code=204)
+async def reset_mobile_password(academy_id: UUID, input: MobilePasswordResetInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): await app_service.reset_mobile_password(identity, academy_id, input)
+@app.get("/api/academies/{academy_id}/staff-workdays", tags=["academy"], response_model=list[StaffWorkdaysDto])
+async def staff_workdays(academy_id: UUID, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.staff_workdays(identity, academy_id)
+@app.put("/api/academies/{academy_id}/staff-workdays", tags=["academy"], response_model=StaffWorkdaysDto)
+async def save_staff_workdays(academy_id: UUID, input: StaffWorkdaysInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.save_staff_workdays(identity, academy_id, input)
 @app.post("/api/invitations/accept", tags=["workspaces"], response_model=AcceptDto)
 async def accept(input: AcceptInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.accept(identity, input.token)
 @app.get("/api/platform/academies", tags=["platform"], response_model=list[AcademyDto])
@@ -166,6 +215,8 @@ async def update_expense(academy_id: UUID, expense_id: UUID, input: ExpenseInput
 async def delete_expense(academy_id: UUID, expense_id: UUID, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): await app_service.delete_expense(identity, academy_id, expense_id); return Response(status_code=204)
 @app.get("/api/academies/{academy_id}/finance-summary", tags=["finance"], response_model=FinanceSummaryDto)
 async def finance_summary(academy_id: UUID, start: date, end: date, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.finance_summary(identity, academy_id, start, end)
+@app.get("/api/academies/{academy_id}/branch-revenue", tags=["finance"], response_model=list[BranchRevenueDto])
+async def branch_revenue(academy_id: UUID, month: date, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.branch_revenue(identity, academy_id, month)
 @app.post("/api/academies/{academy_id}/guardian-links", tags=["attendance"], status_code=204)
 async def guardian_link(academy_id: UUID, input: GuardianLinkInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): await app_service.link_guardian(identity, academy_id, input); return Response(status_code=204)
 @app.get("/api/academies/{academy_id}/sessions", tags=["attendance"], response_model=list[SessionDto])
@@ -176,9 +227,5 @@ async def create_session(academy_id: UUID, input: SessionInput, identity: Identi
 async def add_roster(academy_id: UUID, session_id: UUID, input: RosterInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): await app_service.add_roster(identity, academy_id, session_id, input.athleteId); return Response(status_code=204)
 @app.put("/api/academies/{academy_id}/sessions/{session_id}/attendance/{athlete_id}", tags=["attendance"], response_model=AttendanceDto)
 async def mark_attendance(academy_id: UUID, session_id: UUID, athlete_id: UUID, input: AttendanceInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.mark_attendance(identity, academy_id, session_id, athlete_id, input, "MANUAL")
-@app.post("/api/academies/{academy_id}/attendance-qr", tags=["attendance"], response_model=QrDto)
-async def create_qr(academy_id: UUID, input: QrInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.create_qr(identity, academy_id, input)
-@app.post("/api/attendance-qr/redeem", tags=["attendance"], response_model=AttendanceDto)
-async def redeem_qr(input: RedeemQrInput, identity: Identity = Depends(actor), app_service: AcademyService = Depends(service)): return await app_service.redeem_qr(identity, input)
 @app.get("/api/health", tags=["health"])
 async def health(): return {"status": "ok"}

@@ -48,6 +48,12 @@ export async function bootstrapPlatformOwner(connectionString) {
   const username = process.env.PLATFORM_OWNER_USERNAME?.trim().toLowerCase();
   const password = process.env.PLATFORM_OWNER_PASSWORD;
   const name = process.env.PLATFORM_OWNER_NAME?.trim();
+  if (!username && !password && !name) {
+    const client = new pg.Client({ connectionString }); await client.connect();
+    try {
+      if ((await client.query('SELECT 1 FROM "PlatformOwner" WHERE active AND username IS NOT NULL AND "passwordHash" IS NOT NULL LIMIT 1')).rowCount) return;
+    } finally { await client.end(); }
+  }
   if (!username || !password || !name) throw new Error('Set PLATFORM_OWNER_USERNAME, PLATFORM_OWNER_PASSWORD, and PLATFORM_OWNER_NAME.');
   if (!/^[a-z0-9._-]{3,50}$/.test(username)) throw new Error('PLATFORM_OWNER_USERNAME must be 3-50 letters, numbers, dots, underscores, or hyphens.');
   if (password.length < 12 || password.length > 128) throw new Error('PLATFORM_OWNER_PASSWORD must be 12-128 characters.');

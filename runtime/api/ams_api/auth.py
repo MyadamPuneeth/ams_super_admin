@@ -5,7 +5,7 @@ import hmac
 import json
 import os
 from dataclasses import dataclass
-from secrets import token_bytes
+from secrets import token_bytes, token_urlsafe
 from datetime import datetime, timezone
 from time import time
 from uuid import UUID
@@ -20,6 +20,7 @@ class Identity: id: UUID; email: str; name: str; password_change_required: bool 
 
 PLATFORM_COOKIE = "ams_platform_session"
 USER_COOKIE = "ams_user_session"
+MOBILE_COOKIE = "ams_mobile_session"
 
 DEMO_PROFILES = [
     {"id": "11111111-1111-4111-8111-111111111111", "name": "Aarav Mehta", "email": "admin@rally.example", "label": "Academy administrator"},
@@ -71,17 +72,26 @@ class AuthService:
             authenticated = valid and not locked
             if credential and not locked: await session.execute(text('SELECT app_private.record_platform_login(:owner, :valid)'), {"owner": credential["userId"], "valid": authenticated})
         if not authenticated: raise ApiError(401, "Invalid username or password.")
-        payload = base64.urlsafe_b64encode(json.dumps({"kind": "platform", "sub": str(credential["userId"]), "name": credential["name"], "username": username, "exp": int(time() * 1000) + 28_800_000}).encode()).rstrip(b"=").decode()
+        return self.issue_platform(credential["userId"], credential["name"], username, credential["passwordHash"])
+
+    def credential_tag(self, password_hash: str) -> str:
+        return hmac.new(self.secret, password_hash.encode(), hashlib.sha256).hexdigest()
+
+    def issue_platform(self, user_id: UUID, name: str, username: str, password_hash: str) -> str:
+        payload = base64.urlsafe_b64encode(json.dumps({"kind": "platform", "sub": str(user_id), "name": name, "username": username, "pwd": self.credential_tag(password_hash), "exp": int(time() * 1000) + 28_800_000}).encode()).rstrip(b"=").decode()
         return f"{payload}.{hmac.new(self.secret, payload.encode(), hashlib.sha256).hexdigest()}"
 
-    def verify_platform(self, token: str) -> Identity:
+    async def verify_platform(self, token: str) -> Identity:
         try:
             payload, signature = token.split(".")
             expected = hmac.new(self.secret, payload.encode(), hashlib.sha256).hexdigest()
             if not hmac.compare_digest(signature, expected): raise ValueError()
             data = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
             if data.get("kind") != "platform" or data["exp"] <= int(time() * 1000): raise ValueError()
-            return Identity(UUID(data["sub"]), f"{data['username']}@platform.local", data["name"])
+            async with self.db.sessions.begin() as session:
+                credential = (await session.execute(text('SELECT * FROM app_private.platform_owner_credential(:username)'), {"username": data["username"]})).mappings().first()
+            if not credential or not credential["active"] or str(credential["userId"]) != data["sub"] or not hmac.compare_digest(data.get("pwd", ""), self.credential_tag(credential["passwordHash"] or "")): raise ValueError()
+            return Identity(UUID(data["sub"]), f"{data['username']}@platform.local", data["name"], username=data["username"])
         except (ValueError, KeyError, json.JSONDecodeError):
             raise ApiError(401, "Please sign in again.")
 
@@ -94,30 +104,83 @@ class AuthService:
             authenticated = valid and not locked
             if credential and not locked: await session.execute(text('SELECT app_private.record_user_login(:user, :valid)'), {"user": credential["userId"], "valid": authenticated})
         if not authenticated: raise ApiError(401, "Invalid username or password.")
-        return self.issue_user(credential["userId"], credential["name"], credential["email"], credential["passwordChangeRequired"], username)
+        return self.issue_user(credential["userId"], credential["name"], credential["email"], credential["passwordChangeRequired"], username, credential["passwordHash"])
 
-    def issue_user(self, user_id: UUID, name: str, email: str, password_change_required: bool, username: str) -> str:
-        payload = base64.urlsafe_b64encode(json.dumps({"kind": "user", "sub": str(user_id), "name": name, "email": email, "username": username, "change": password_change_required, "exp": int(time() * 1000) + 28_800_000}).encode()).rstrip(b"=").decode()
+    async def mobile_sign_in(self, username: str, password: str) -> str:
+        # Use the same lockout and password checks as the user application.
+        await self.password_sign_in(username, password)
+        token = token_urlsafe(48)
+        async with self.db.sessions.begin() as session:
+            credential = (await session.execute(text('SELECT * FROM app_private.user_credential(:username)'), {"username": username})).mappings().first()
+            await session.execute(text('SELECT app_private.create_mobile_session(:user,:hash)'), {"user": credential["userId"], "hash": hashlib.sha256(token.encode()).hexdigest()})
+        return token
+
+    async def mobile_identity(self, token: str) -> Identity:
+        async with self.db.sessions.begin() as session:
+            value = (await session.execute(text('SELECT * FROM app_private.mobile_session(:hash)'), {"hash": hashlib.sha256(token.encode()).hexdigest()})).mappings().first()
+        if not value: raise ApiError(401, "Please sign in again.")
+        return Identity(value["userId"], value["email"], value["name"], value["passwordChangeRequired"], value["username"])
+
+    async def mobile_sign_out(self, token: str) -> None:
+        async with self.db.sessions.begin() as session:
+            await session.execute(text('SELECT app_private.revoke_mobile_session(:hash)'), {"hash": hashlib.sha256(token.encode()).hexdigest()})
+
+    async def mobile_change_password(self, identity: Identity, password: str) -> str:
+        await self.change_password(identity, password)
+        token = token_urlsafe(48)
+        async with self.db.sessions.begin() as session:
+            await session.execute(text('SELECT app_private.create_mobile_session(:user,:hash)'), {"user": identity.id, "hash": hashlib.sha256(token.encode()).hexdigest()})
+        return token
+
+    def issue_user(self, user_id: UUID, name: str, email: str, password_change_required: bool, username: str, password_hash: str) -> str:
+        payload = base64.urlsafe_b64encode(json.dumps({"kind": "user", "sub": str(user_id), "name": name, "email": email, "username": username, "change": password_change_required, "pwd": self.credential_tag(password_hash), "exp": int(time() * 1000) + 28_800_000}).encode()).rstrip(b"=").decode()
         return f"{payload}.{hmac.new(self.secret, payload.encode(), hashlib.sha256).hexdigest()}"
 
-    def verify_user(self, token: str) -> Identity:
+    async def verify_user(self, token: str) -> Identity:
         try:
             payload, signature = token.split(".")
             if not hmac.compare_digest(signature, hmac.new(self.secret, payload.encode(), hashlib.sha256).hexdigest()): raise ValueError()
             data = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
             if data.get("kind") != "user" or data["exp"] <= int(time() * 1000): raise ValueError()
-            return Identity(UUID(data["sub"]), data["email"], data["name"], bool(data.get("change")), data["username"])
+            async with self.db.sessions.begin() as session:
+                credential = (await session.execute(text('SELECT * FROM app_private.user_credential(:username)'), {"username": data["username"]})).mappings().first()
+            if not credential or not credential["active"] or str(credential["userId"]) != data["sub"] or not hmac.compare_digest(data.get("pwd", ""), self.credential_tag(credential["passwordHash"])): raise ValueError()
+            return Identity(UUID(data["sub"]), data["email"], data["name"], credential["passwordChangeRequired"], data["username"])
         except (ValueError, KeyError, json.JSONDecodeError):
             raise ApiError(401, "Please sign in again.")
 
     async def change_password(self, identity: Identity, password: str) -> str:
         if not identity.password_change_required: raise ApiError(403, "A password change is not required.")
+        return await self.update_password(identity, None, password)
+
+    async def update_password(self, identity: Identity, current_password: str | None, password: str) -> str:
         async with self.db.sessions.begin() as session:
             credential = (await session.execute(text('SELECT * FROM app_private.user_credential(:username)'), {"username": identity.username})).mappings().first()
-        if not credential or self.check_password(password, credential["passwordHash"]): raise ApiError(400, "Choose a password different from the temporary password.")
+        if not credential or credential["userId"] != identity.id or not credential["active"]: raise ApiError(401, "Please sign in again.")
+        if current_password is not None and not self.check_password(current_password, credential["passwordHash"]): raise ApiError(401, "Current password is incorrect.")
+        if self.check_password(password, credential["passwordHash"]): raise ApiError(400, "Choose a different new password.")
+        password_hash = self.hash_password(password)
         async with self.db.as_actor(identity) as session:
-            await session.execute(text('SELECT app_private.change_user_password(:user, :hash)'), {"user": identity.id, "hash": self.hash_password(password)})
-        return self.issue_user(identity.id, identity.name, identity.email, False, identity.username)
+            await session.execute(text('SELECT app_private.change_user_password(:user, :hash)'), {"user": identity.id, "hash": password_hash})
+        return self.issue_user(identity.id, identity.name, identity.email, False, identity.username, password_hash)
+
+    async def mobile_update_password(self, identity: Identity, current_password: str, password: str) -> str:
+        await self.update_password(identity, current_password, password)
+        token = token_urlsafe(48)
+        async with self.db.sessions.begin() as session:
+            await session.execute(text('SELECT app_private.create_mobile_session(:user,:hash)'), {"user": identity.id, "hash": hashlib.sha256(token.encode()).hexdigest()})
+        return token
+
+    async def update_platform_password(self, identity: Identity, current_password: str, password: str) -> str:
+        async with self.db.sessions.begin() as session:
+            credential = (await session.execute(text('SELECT * FROM app_private.platform_owner_credential(:username)'), {"username": identity.username})).mappings().first()
+        if not credential or credential["userId"] != identity.id or not credential["active"]: raise ApiError(401, "Please sign in again.")
+        if not self.check_password(current_password, credential["passwordHash"] or ""): raise ApiError(401, "Current password is incorrect.")
+        if self.check_password(password, credential["passwordHash"]): raise ApiError(400, "Choose a different new password.")
+        password_hash = self.hash_password(password)
+        async with self.db.as_actor(identity) as session:
+            await session.execute(text('SELECT app_private.change_platform_password(:owner,:hash)'), {"owner": identity.id, "hash": password_hash})
+        return self.issue_platform(identity.id, identity.name, identity.username, password_hash)
 
     def issue_demo(self, user_id: UUID) -> str:
         if not self.demo or not any(item["id"] == str(user_id) for item in DEMO_PROFILES): raise ApiError(401, "Unauthorized")
@@ -149,9 +212,10 @@ class AuthService:
 async def actor(request: Request) -> Identity:
     header = request.headers.get("authorization", "")
     if header.startswith("Bearer ") and len(header) <= 8192: identity = await request.app.state.auth.verify(header[7:])
-    elif request.cookies.get(PLATFORM_COOKIE): identity = request.app.state.auth.verify_platform(request.cookies[PLATFORM_COOKIE])
-    elif request.cookies.get(USER_COOKIE): identity = request.app.state.auth.verify_user(request.cookies[USER_COOKIE])
+    elif request.headers.get("x-ams-client") == "mobile" and request.cookies.get(MOBILE_COOKIE): identity = await request.app.state.auth.mobile_identity(request.cookies[MOBILE_COOKIE])
+    elif request.cookies.get(PLATFORM_COOKIE): identity = await request.app.state.auth.verify_platform(request.cookies[PLATFORM_COOKIE])
+    elif request.cookies.get(USER_COOKIE): identity = await request.app.state.auth.verify_user(request.cookies[USER_COOKIE])
     else: raise ApiError(401, "Unauthorized")
-    if identity.password_change_required and request.url.path not in {"/api/me", "/api/auth/password/change-required", "/api/auth/password/sign-out"}:
+    if identity.password_change_required and request.url.path not in {"/api/me", "/api/auth/password/change-required", "/api/auth/password/sign-out", "/api/auth/mobile/change-required", "/api/auth/mobile/sign-out"}:
         raise ApiError(403, "Change your temporary password before continuing.")
     return identity

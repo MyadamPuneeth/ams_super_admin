@@ -53,6 +53,40 @@
         }
       }
     },
+    "/api/platform/auth/change-password": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Platform Change Password",
+        "operationId": "platform_change_password_api_platform_auth_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/config": {
       "get": {
         "tags": [
@@ -183,6 +217,40 @@
         }
       }
     },
+    "/api/auth/password/change": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Password Update",
+        "operationId": "password_update_api_auth_password_change_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/password/sign-out": {
       "post": {
         "tags": [
@@ -190,6 +258,122 @@
         ],
         "summary": "Password Sign Out",
         "operationId": "password_sign_out_api_auth_password_sign_out_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/auth/mobile/sign-in": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Mobile Sign In",
+        "operationId": "mobile_sign_in_api_auth_mobile_sign_in_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSignInInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/mobile/change-required": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Mobile Change Required",
+        "operationId": "mobile_change_required_api_auth_mobile_change_required_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/mobile/change": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Mobile Update",
+        "operationId": "mobile_update_api_auth_mobile_change_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/mobile/sign-out": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Mobile Sign Out",
+        "operationId": "mobile_sign_out_api_auth_mobile_sign_out_post",
         "responses": {
           "204": {
             "description": "Successful Response"
@@ -211,6 +395,373 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/mobile/me": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Mobile Me",
+        "operationId": "mobile_me_api_auth_mobile_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/personal-attendance": {
+      "get": {
+        "tags": [
+          "attendance"
+        ],
+        "summary": "Personal Attendance",
+        "operationId": "personal_attendance_api_academies__academy_id__personal_attendance_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalMonthDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/my-check-in-code": {
+      "post": {
+        "tags": [
+          "attendance"
+        ],
+        "summary": "My Check In Code",
+        "operationId": "my_check_in_code_api_academies__academy_id__my_check_in_code_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberCheckInCodeDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/scan-member": {
+      "post": {
+        "tags": [
+          "attendance"
+        ],
+        "summary": "Scan Member",
+        "operationId": "scan_member_api_academies__academy_id__scan_member_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcademyScanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcademyScanDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/mobile-accounts": {
+      "post": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Provision Mobile Account",
+        "operationId": "provision_mobile_account_api_academies__academy_id__mobile_accounts_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileAccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileAccountDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/mobile-accounts/reset-password": {
+      "post": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Reset Mobile Password",
+        "operationId": "reset_mobile_password_api_academies__academy_id__mobile_accounts_reset_password_post",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobilePasswordResetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/academies/{academy_id}/staff-workdays": {
+      "get": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Staff Workdays",
+        "operationId": "staff_workdays_api_academies__academy_id__staff_workdays_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StaffWorkdaysDto"
+                  },
+                  "title": "Response Staff Workdays Api Academies  Academy Id  Staff Workdays Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "academy"
+        ],
+        "summary": "Save Staff Workdays",
+        "operationId": "save_staff_workdays_api_academies__academy_id__staff_workdays_put",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffWorkdaysInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffWorkdaysDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -2710,6 +3261,63 @@
         }
       }
     },
+    "/api/academies/{academy_id}/branch-revenue": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Branch Revenue",
+        "operationId": "branch_revenue_api_academies__academy_id__branch_revenue_get",
+        "parameters": [
+          {
+            "name": "academy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Academy Id"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BranchRevenueDto"
+                  },
+                  "title": "Response Branch Revenue Api Academies  Academy Id  Branch Revenue Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/academies/{academy_id}/guardian-links": {
       "post": {
         "tags": [
@@ -2983,100 +3591,6 @@
         }
       }
     },
-    "/api/academies/{academy_id}/attendance-qr": {
-      "post": {
-        "tags": [
-          "attendance"
-        ],
-        "summary": "Create Qr",
-        "operationId": "create_qr_api_academies__academy_id__attendance_qr_post",
-        "parameters": [
-          {
-            "name": "academy_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Academy Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/QrInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QrDto"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/attendance-qr/redeem": {
-      "post": {
-        "tags": [
-          "attendance"
-        ],
-        "summary": "Redeem Qr",
-        "operationId": "redeem_qr_api_attendance_qr_redeem_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RedeemQrInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AttendanceDto"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/health": {
       "get": {
         "tags": [
@@ -3260,6 +3774,57 @@
         ],
         "title": "AcademyInput"
       },
+      "AcademyScanDto": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "personType": {
+            "type": "string",
+            "title": "Persontype"
+          },
+          "localDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Localdate"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checkedat"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "personType",
+          "localDate",
+          "checkedAt",
+          "status"
+        ],
+        "title": "AcademyScanDto"
+      },
+      "AcademyScanInput": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 40,
+            "title": "Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "AcademyScanInput"
+      },
       "AcceptDto": {
         "properties": {
           "academyId": {
@@ -3415,6 +3980,19 @@
       },
       "AthleteUpdateInput": {
         "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "homeBranchId": {
             "anyOf": [
               {
@@ -3952,8 +4530,6 @@
           },
           "phone": {
             "type": "string",
-            "maxLength": 30,
-            "minLength": 5,
             "title": "Phone"
           },
           "email": {
@@ -3989,6 +4565,18 @@
             "type": "string",
             "format": "uuid",
             "title": "Id"
+          },
+          "membershipId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membershipid"
           },
           "createdAt": {
             "type": "string",
@@ -4882,6 +5470,25 @@
         ],
         "title": "MeDto"
       },
+      "MemberCheckInCodeDto": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "expiresAt"
+        ],
+        "title": "MemberCheckInCodeDto"
+      },
       "MemberDto": {
         "properties": {
           "id": {
@@ -4978,6 +5585,108 @@
         ],
         "title": "MemberInput"
       },
+      "MobileAccountDto": {
+        "properties": {
+          "membershipId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Membershipid"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "membershipId",
+          "username",
+          "name"
+        ],
+        "title": "MobileAccountDto"
+      },
+      "MobileAccountInput": {
+        "properties": {
+          "personType": {
+            "type": "string",
+            "pattern": "^(ATHLETE|COACH|STAFF)$",
+            "title": "Persontype"
+          },
+          "personId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personid"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9._-]+$",
+            "title": "Username"
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Temporarypassword"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "personType",
+          "username",
+          "temporaryPassword",
+          "email",
+          "name"
+        ],
+        "title": "MobileAccountInput"
+      },
+      "MobilePasswordResetInput": {
+        "properties": {
+          "membershipId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Membershipid"
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Temporarypassword"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "membershipId",
+          "temporaryPassword"
+        ],
+        "title": "MobilePasswordResetInput"
+      },
       "PasswordChangeInput": {
         "properties": {
           "newPassword": {
@@ -5017,6 +5726,29 @@
           "password"
         ],
         "title": "PasswordSignInInput"
+      },
+      "PasswordUpdateInput": {
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Newpassword"
+          },
+          "currentPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Currentpassword"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "newPassword",
+          "currentPassword"
+        ],
+        "title": "PasswordUpdateInput"
       },
       "PaymentDto": {
         "properties": {
@@ -5242,6 +5974,109 @@
         ],
         "title": "PaymentInput"
       },
+      "PersonalDayDto": {
+        "properties": {
+          "localDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Localdate"
+          },
+          "eligible": {
+            "type": "integer",
+            "title": "Eligible"
+          },
+          "present": {
+            "type": "integer",
+            "title": "Present"
+          },
+          "excused": {
+            "type": "integer",
+            "title": "Excused"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "checkedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "localDate",
+          "eligible",
+          "present",
+          "excused",
+          "status",
+          "items"
+        ],
+        "title": "PersonalDayDto"
+      },
+      "PersonalMonthDto": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month"
+          },
+          "present": {
+            "type": "integer",
+            "title": "Present"
+          },
+          "eligible": {
+            "type": "integer",
+            "title": "Eligible"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/PersonalDayDto"
+            },
+            "type": "array",
+            "title": "Days"
+          },
+          "personType": {
+            "type": "string",
+            "title": "Persontype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "present",
+          "eligible",
+          "rate",
+          "days",
+          "personType"
+        ],
+        "title": "PersonalMonthDto"
+      },
       "PlatformSignInInput": {
         "properties": {
           "username": {
@@ -5265,90 +6100,6 @@
           "password"
         ],
         "title": "PlatformSignInInput"
-      },
-      "QrDto": {
-        "properties": {
-          "token": {
-            "type": "string",
-            "title": "Token"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Expiresat"
-          }
-        },
-        "type": "object",
-        "required": [
-          "token",
-          "url",
-          "expiresAt"
-        ],
-        "title": "QrDto"
-      },
-      "QrInput": {
-        "properties": {
-          "kind": {
-            "type": "string",
-            "pattern": "^(SESSION|STAFF)$",
-            "title": "Kind"
-          },
-          "branchId": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Branchid"
-          },
-          "sessionId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sessionid"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "kind",
-          "branchId"
-        ],
-        "title": "QrInput"
-      },
-      "RedeemQrInput": {
-        "properties": {
-          "token": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{64}$",
-            "title": "Token"
-          },
-          "athleteId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Athleteid"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "token"
-        ],
-        "title": "RedeemQrInput"
       },
       "RefundDto": {
         "properties": {
@@ -5559,6 +6310,58 @@
           "endsAt"
         ],
         "title": "SessionInput"
+      },
+      "StaffWorkdaysDto": {
+        "properties": {
+          "membershipId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Membershipid"
+          },
+          "effectiveOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Effectiveon"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Weekdays"
+          }
+        },
+        "type": "object",
+        "required": [
+          "membershipId",
+          "effectiveOn",
+          "weekdays"
+        ],
+        "title": "StaffWorkdaysDto"
+      },
+      "StaffWorkdaysInput": {
+        "properties": {
+          "membershipId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Membershipid"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Weekdays"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "membershipId",
+          "weekdays"
+        ],
+        "title": "StaffWorkdaysInput"
       },
       "SubscriptionInput": {
         "properties": {

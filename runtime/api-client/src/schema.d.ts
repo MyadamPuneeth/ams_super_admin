@@ -33,6 +33,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Platform Change Password */
+        post: operations["platform_change_password_api_platform_auth_change_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/config": {
         parameters: {
             query?: never;
@@ -101,6 +118,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/password/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Password Update */
+        post: operations["password_update_api_auth_password_change_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/password/sign-out": {
         parameters: {
             query?: never;
@@ -118,6 +152,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/mobile/sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mobile Sign In */
+        post: operations["mobile_sign_in_api_auth_mobile_sign_in_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/mobile/change-required": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mobile Change Required */
+        post: operations["mobile_change_required_api_auth_mobile_change_required_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/mobile/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mobile Update */
+        post: operations["mobile_update_api_auth_mobile_change_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/mobile/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mobile Sign Out */
+        post: operations["mobile_sign_out_api_auth_mobile_sign_out_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/me": {
         parameters: {
             query?: never;
@@ -128,6 +230,126 @@ export interface paths {
         /** Me */
         get: operations["me_api_me_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/mobile/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mobile Me */
+        get: operations["mobile_me_api_auth_mobile_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/personal-attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personal Attendance */
+        get: operations["personal_attendance_api_academies__academy_id__personal_attendance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/my-check-in-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** My Check In Code */
+        post: operations["my_check_in_code_api_academies__academy_id__my_check_in_code_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/scan-member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scan Member */
+        post: operations["scan_member_api_academies__academy_id__scan_member_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/mobile-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provision Mobile Account */
+        post: operations["provision_mobile_account_api_academies__academy_id__mobile_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/mobile-accounts/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Mobile Password */
+        post: operations["reset_mobile_password_api_academies__academy_id__mobile_accounts_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/academies/{academy_id}/staff-workdays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff Workdays */
+        get: operations["staff_workdays_api_academies__academy_id__staff_workdays_get"];
+        /** Save Staff Workdays */
+        put: operations["save_staff_workdays_api_academies__academy_id__staff_workdays_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -744,6 +966,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/academies/{academy_id}/branch-revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Branch Revenue */
+        get: operations["branch_revenue_api_academies__academy_id__branch_revenue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/academies/{academy_id}/guardian-links": {
         parameters: {
             query?: never;
@@ -807,40 +1046,6 @@ export interface paths {
         /** Mark Attendance */
         put: operations["mark_attendance_api_academies__academy_id__sessions__session_id__attendance__athlete_id__put"];
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/academies/{academy_id}/attendance-qr": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Qr */
-        post: operations["create_qr_api_academies__academy_id__attendance_qr_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/attendance-qr/redeem": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Redeem Qr */
-        post: operations["redeem_qr_api_attendance_qr_redeem_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -929,6 +1134,30 @@ export interface components {
             /** Subscriptionendson */
             subscriptionEndsOn?: string | null;
         };
+        /** AcademyScanDto */
+        AcademyScanDto: {
+            /** Name */
+            name: string;
+            /** Persontype */
+            personType: string;
+            /**
+             * Localdate
+             * Format: date
+             */
+            localDate: string;
+            /**
+             * Checkedat
+             * Format: date-time
+             */
+            checkedAt: string;
+            /** Status */
+            status: string;
+        };
+        /** AcademyScanInput */
+        AcademyScanInput: {
+            /** Code */
+            code: string;
+        };
         /** AcceptDto */
         AcceptDto: {
             /**
@@ -981,6 +1210,8 @@ export interface components {
         };
         /** AthleteUpdateInput */
         AthleteUpdateInput: {
+            /** Name */
+            name?: string | null;
             /** Homebranchid */
             homeBranchId?: string | null;
             /** Monthlyfee */
@@ -1208,6 +1439,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Membershipid */
+            membershipId?: string | null;
             /**
              * Createdat
              * Format: date-time
@@ -1553,6 +1786,16 @@ export interface components {
             /** Workspaces */
             workspaces: components["schemas"]["WorkspaceDto"][];
         };
+        /** MemberCheckInCodeDto */
+        MemberCheckInCodeDto: {
+            /** Code */
+            code: string;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+        };
         /** MemberDto */
         MemberDto: {
             /**
@@ -1589,6 +1832,43 @@ export interface components {
             /** Active */
             active: boolean;
         };
+        /** MobileAccountDto */
+        MobileAccountDto: {
+            /**
+             * Membershipid
+             * Format: uuid
+             */
+            membershipId: string;
+            /** Username */
+            username: string;
+            /** Name */
+            name: string;
+        };
+        /** MobileAccountInput */
+        MobileAccountInput: {
+            /** Persontype */
+            personType: string;
+            /** Personid */
+            personId?: string | null;
+            /** Username */
+            username: string;
+            /** Temporarypassword */
+            temporaryPassword: string;
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+        };
+        /** MobilePasswordResetInput */
+        MobilePasswordResetInput: {
+            /**
+             * Membershipid
+             * Format: uuid
+             */
+            membershipId: string;
+            /** Temporarypassword */
+            temporaryPassword: string;
+        };
         /** PasswordChangeInput */
         PasswordChangeInput: {
             /** Newpassword */
@@ -1600,6 +1880,13 @@ export interface components {
             username: string;
             /** Password */
             password: string;
+        };
+        /** PasswordUpdateInput */
+        PasswordUpdateInput: {
+            /** Newpassword */
+            newPassword: string;
+            /** Currentpassword */
+            currentPassword: string;
         };
         /** PaymentDto */
         PaymentDto: {
@@ -1663,43 +1950,50 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /** PersonalDayDto */
+        PersonalDayDto: {
+            /**
+             * Localdate
+             * Format: date
+             */
+            localDate: string;
+            /** Eligible */
+            eligible: number;
+            /** Present */
+            present: number;
+            /** Excused */
+            excused: number;
+            /** Status */
+            status: string;
+            /** Items */
+            items: string[];
+            /** Checkedat */
+            checkedAt?: string | null;
+        };
+        /** PersonalMonthDto */
+        PersonalMonthDto: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Present */
+            present: number;
+            /** Eligible */
+            eligible: number;
+            /** Rate */
+            rate: number | null;
+            /** Days */
+            days: components["schemas"]["PersonalDayDto"][];
+            /** Persontype */
+            personType: string;
+        };
         /** PlatformSignInInput */
         PlatformSignInInput: {
             /** Username */
             username: string;
             /** Password */
             password: string;
-        };
-        /** QrDto */
-        QrDto: {
-            /** Token */
-            token: string;
-            /** Url */
-            url: string;
-            /**
-             * Expiresat
-             * Format: date-time
-             */
-            expiresAt: string;
-        };
-        /** QrInput */
-        QrInput: {
-            /** Kind */
-            kind: string;
-            /**
-             * Branchid
-             * Format: uuid
-             */
-            branchId: string;
-            /** Sessionid */
-            sessionId?: string | null;
-        };
-        /** RedeemQrInput */
-        RedeemQrInput: {
-            /** Token */
-            token: string;
-            /** Athleteid */
-            athleteId?: string | null;
         };
         /** RefundDto */
         RefundDto: {
@@ -1803,6 +2097,31 @@ export interface components {
              * Format: date-time
              */
             endsAt: string;
+        };
+        /** StaffWorkdaysDto */
+        StaffWorkdaysDto: {
+            /**
+             * Membershipid
+             * Format: uuid
+             */
+            membershipId: string;
+            /**
+             * Effectiveon
+             * Format: date
+             */
+            effectiveOn: string;
+            /** Weekdays */
+            weekdays: number[];
+        };
+        /** StaffWorkdaysInput */
+        StaffWorkdaysInput: {
+            /**
+             * Membershipid
+             * Format: uuid
+             */
+            membershipId: string;
+            /** Weekdays */
+            weekdays: number[];
         };
         /** SubscriptionInput */
         SubscriptionInput: {
@@ -1930,6 +2249,37 @@ export interface operations {
             };
         };
     };
+    platform_change_password_api_platform_auth_change_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     auth_config_api_auth_config_get: {
         parameters: {
             query?: never;
@@ -2045,7 +2395,149 @@ export interface operations {
             };
         };
     };
+    password_update_api_auth_password_change_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     password_sign_out_api_auth_password_sign_out_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mobile_sign_in_api_auth_mobile_sign_in_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordSignInInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mobile_change_required_api_auth_mobile_change_required_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mobile_update_api_auth_mobile_change_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mobile_sign_out_api_auth_mobile_sign_out_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2079,6 +2571,259 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeDto"];
+                };
+            };
+        };
+    };
+    mobile_me_api_auth_mobile_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeDto"];
+                };
+            };
+        };
+    };
+    personal_attendance_api_academies__academy_id__personal_attendance_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalMonthDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_check_in_code_api_academies__academy_id__my_check_in_code_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberCheckInCodeDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scan_member_api_academies__academy_id__scan_member_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcademyScanInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademyScanDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provision_mobile_account_api_academies__academy_id__mobile_accounts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobileAccountInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileAccountDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_mobile_password_api_academies__academy_id__mobile_accounts_reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobilePasswordResetInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    staff_workdays_api_academies__academy_id__staff_workdays_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffWorkdaysDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_staff_workdays_api_academies__academy_id__staff_workdays_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffWorkdaysInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffWorkdaysDto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3682,6 +4427,39 @@ export interface operations {
             };
         };
     };
+    branch_revenue_api_academies__academy_id__branch_revenue_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path: {
+                academy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchRevenueDto"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     guardian_link_api_academies__academy_id__guardian_links_post: {
         parameters: {
             query?: never;
@@ -3829,74 +4607,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AttendanceInput"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttendanceDto"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_qr_api_academies__academy_id__attendance_qr_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                academy_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QrInput"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QrDto"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    redeem_qr_api_attendance_qr_redeem_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RedeemQrInput"];
             };
         };
         responses: {

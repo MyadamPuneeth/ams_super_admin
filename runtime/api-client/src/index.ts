@@ -14,6 +14,7 @@ export type Handoff = Models['HandoffDto'];
 export type Athlete = Models['AthleteDto'];
 export type Coach = Models['CoachDto'];
 export type Batch = Models['BatchDto'];
+export type PersonalMonth = Models['PersonalMonthDto'];
 export type Invoice = Models['InvoiceDto'];
 export type Payment = Models['PaymentDto'];
 export type Expense = Models['ExpenseDto'];
@@ -21,10 +22,10 @@ export type FinanceSummary = Models['FinanceSummaryDto'];
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string, public readonly requestId?: string) { super(message); }
 }
-export function createApi(getToken: () => string | null, baseUrl = '') {
+export function createApi(getToken: () => string | null, baseUrl = '', client = '') {
   async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     const token = getToken();
-    const response = await fetch(`${baseUrl}/api${path}`, { method, credentials: 'same-origin', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body ? JSON.stringify(body) : undefined });
+    const response = await fetch(`${baseUrl}/api${path}`, { method, credentials: 'same-origin', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(client ? { 'X-AMS-Client': client } : {}) }, body: body ? JSON.stringify(body) : undefined });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'The server could not complete this request.' }));
       throw new ApiError(response.status, Array.isArray(error.message) ? error.message.join(' ') : error.message || 'Request failed.', error.requestId);
@@ -35,9 +36,16 @@ export function createApi(getToken: () => string | null, baseUrl = '') {
   return {
     platformSignIn: (body: Models['PlatformSignInInput']) => request<void>('/platform/auth/sign-in', 'POST', body),
     platformSignOut: () => request<void>('/platform/auth/sign-out', 'POST'),
+    platformChangePassword: (body: Models['PasswordUpdateInput']) => request<void>('/platform/auth/change-password', 'POST', body),
     passwordSignIn: (body: Models['PasswordSignInInput']) => request<void>('/auth/password/sign-in', 'POST', body),
     changeRequiredPassword: (newPassword: string) => request<void>('/auth/password/change-required', 'POST', { newPassword }),
+    passwordChange: (body: Models['PasswordUpdateInput']) => request<void>('/auth/password/change', 'POST', body),
     passwordSignOut: () => request<void>('/auth/password/sign-out', 'POST'),
+    mobileSignIn: (body: Models['PasswordSignInInput']) => request<void>('/auth/mobile/sign-in', 'POST', body),
+    mobileChangePassword: (newPassword: string) => request<void>('/auth/mobile/change-required', 'POST', { newPassword }),
+    mobileUpdatePassword: (body: Models['PasswordUpdateInput']) => request<void>('/auth/mobile/change', 'POST', body),
+    mobileSignOut: () => request<void>('/auth/mobile/sign-out', 'POST'),
+    mobileMe: () => request<Me>('/auth/mobile/me'),
     config: () => request<AuthConfig>('/auth/config'),
     demo: (userId: string) => request<Models['TokenDto']>('/auth/demo', 'POST', { userId }),
     me: () => request<Me>('/me'),
@@ -75,6 +83,13 @@ export function createApi(getToken: () => string | null, baseUrl = '') {
     updateBatch: (id: string, batch: string, body: Models['BatchInput']) => request<Batch>(academyPath(id, `batches/${batch}`), 'PUT', body),
     deleteBatch: (id: string, batch: string) => request<void>(academyPath(id, `batches/${batch}`), 'DELETE'),
     dailyAttendance: (id: string, date: string) => request<Models['DailyAttendanceDto'][]>(`${academyPath(id, 'daily-attendance')}?localDate=${encodeURIComponent(date)}`),
+    personalAttendance: (id: string, month: string) => request<PersonalMonth>(`${academyPath(id, 'personal-attendance')}?month=${encodeURIComponent(month)}`),
+    memberCheckInCode: (id: string) => request<Models['MemberCheckInCodeDto']>(academyPath(id, 'my-check-in-code'), 'POST'),
+    scanMember: (id: string, code: string) => request<Models['AcademyScanDto']>(academyPath(id, 'scan-member'), 'POST', { code }),
+    provisionMobileAccount: (id: string, body: Models['MobileAccountInput']) => request<Models['MobileAccountDto']>(academyPath(id, 'mobile-accounts'), 'POST', body),
+    resetMobilePassword: (id: string, body: Models['MobilePasswordResetInput']) => request<void>(academyPath(id, 'mobile-accounts/reset-password'), 'POST', body),
+    staffWorkdays: (id: string) => request<Models['StaffWorkdaysDto'][]>(academyPath(id, 'staff-workdays')),
+    saveStaffWorkdays: (id: string, body: Models['StaffWorkdaysInput']) => request<Models['StaffWorkdaysDto']>(academyPath(id, 'staff-workdays'), 'PUT', body),
     saveDailyAttendance: (id: string, body: Models['DailyAttendanceInput']) => request<void>(academyPath(id, 'daily-attendance'), 'PUT', body),
     invoices: (id: string, month?: string) => request<Invoice[]>(`${academyPath(id, 'invoices')}${month ? `?month=${encodeURIComponent(month)}` : ''}`),
     generateInvoices: (id: string, body: Models['InvoiceGenerateInput']) => request<Invoice[]>(academyPath(id, 'invoices/generate'), 'POST', body),
@@ -90,11 +105,10 @@ export function createApi(getToken: () => string | null, baseUrl = '') {
     updateExpense: (id: string, expense: string, body: Models['ExpenseInput']) => request<Expense>(academyPath(id, `expenses/${expense}`), 'PUT', body),
     deleteExpense: (id: string, expense: string) => request<void>(academyPath(id, `expenses/${expense}`), 'DELETE'),
     financeSummary: (id: string, start: string, end: string) => request<FinanceSummary>(`${academyPath(id, 'finance-summary')}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`),
+    branchRevenue: (id: string, month: string) => request<FinanceSummary['branchDistribution']>(`${academyPath(id, 'branch-revenue')}?month=${encodeURIComponent(month)}`),
     sessions: (id: string) => request<Models['SessionDto'][]>(academyPath(id, 'sessions')),
     createSession: (id: string, body: Models['SessionInput']) => request<Models['SessionDto']>(academyPath(id, 'sessions'), 'POST', body),
     addRoster: (id: string, session: string, athleteId: string) => request<void>(academyPath(id, `sessions/${session}/roster`), 'POST', { athleteId }),
     markAttendance: (id: string, session: string, athlete: string, body: Models['AttendanceInput']) => request<Models['AttendanceDto']>(academyPath(id, `sessions/${session}/attendance/${athlete}`), 'PUT', body),
-    createQr: (id: string, body: Models['QrInput']) => request<Models['QrDto']>(academyPath(id, 'attendance-qr'), 'POST', body),
-    redeemQr: (body: Models['RedeemQrInput']) => request<Models['AttendanceDto']>('/attendance-qr/redeem', 'POST', body),
   };
 }
